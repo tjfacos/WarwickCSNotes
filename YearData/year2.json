@@ -1,9 +1,8 @@
 {
     "year": 2,
     "title": "Year 2",
-    "modules": [
-        {
-            "code": "CS241",
+    "modules": {
+        "CS241": {
             "tagline": "Processes, Scheduling, C",
             "name": "Operating Systems and Computer Networks",
             "notes": [
@@ -22,8 +21,22 @@
                 {"title": "Lab 2", "url": "#"}
             ]
         },
-        {
-            "code": "CS258",
+        "CS257": {
+            "tagline": "Remember CS132? Version 2 dropped",
+            "name": "Advanced Computer Architecture",
+            "notes": [
+                {"title": "Crying on the inside", "url": "#"}
+            ],
+            "past_papers": [
+                {"year": "2025", "url": "#"},
+                {"year": "2024", "url": "#"},
+                {"year": "2023", "url": "#"}
+            ],
+            "seminar_exercises": [
+                {"title": "Lab", "url": "#"}
+            ]
+        },
+        "CS258": {
             "tagline": "Relational models, SQL, and pain",
             "name": "Database Systems",
             "notes": [
@@ -38,8 +51,7 @@
                 {"title": "Lab", "url": "#"}
             ]
         },
-        {
-            "code": "CS259",
+        "CS259": {
             "tagline": "Automata and fun",
             "name": "Formal Languages",
             "notes": [
@@ -54,8 +66,7 @@
                 {"year": "2023", "url": "#"}
             ]
         },
-        {
-            "code": "CS260",
+        "CS260": {
             "tagline": "Algorithm paradigms and also complexity classes",
             "name": "Algorithms",
             "notes": [
@@ -74,8 +85,7 @@
                 {"title": "da", "url": "#"}
             ]
         },
-        {
-            "code": "CS261",
+        "CS261": {
             "tagline": "Nightmare nightmare nightmare",
             "name": "Software Engineering",
             "notes": [
@@ -86,8 +96,7 @@
                 {"year": "2024", "url": "#"}
             ]
         },
-        {
-            "code": "CS262",
+        "CS262": {
             "tagline": "Prolog is kinda fun",
             "name": "Logic and Verification",
             "notes": [
@@ -101,5 +110,5 @@
                 {"year": "2023", "url": "#"}
             ]
         }
-    ]
+    }
 }

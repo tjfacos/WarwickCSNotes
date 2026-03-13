@@ -1,9 +1,8 @@
 {
     "year": 3,
     "title": "Year 3",
-    "modules": [
-        {
-            "code": "CS310",
+    "modules": {
+        "CS310": {
             "tagline": "Dissertation - either you love it or you hate it",
             "name": "Project",
             "notes": [
@@ -11,8 +10,7 @@
             ],
             "past_papers": []
         },
-        {
-            "code": "CS325",
+        "CS325": {
             "tagline": "Build a thing",
             "name": "Compiler Design",
             "notes": [
@@ -27,8 +25,7 @@
                 {"title": "Lab", "url": "#"}
             ]
         },
-        {
-            "code": "CS331",
+        "CS331": {
             "tagline": "Has biology in it for some reason",
             "name": "Neural Computing",
             "notes": [
@@ -40,8 +37,7 @@
                 {"year": "2023", "url": "#"}
             ]
         },
-        {
-            "code": "CS342",
+        "CS342": {
             "tagline": "What makes the money",
             "name": "Machine Learning",
             "notes": [
@@ -53,8 +49,7 @@
                 {"year": "2023", "url": "#"}
             ]
         },
-        {
-            "code": "CS355",
+        "CS355": {
             "tagline": "Image things",
             "name": "Digital Forensics",
             "notes": [
@@ -65,5 +60,5 @@
                 {"year": "2024", "url": "#"}
             ]
         }
-    ]
+    }
 }

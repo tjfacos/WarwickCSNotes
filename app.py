@@ -1,9 +1,8 @@
 import json
 import os
-import markdown
-import pypandoc
 from flask import Flask, render_template, abort
 from jinja2 import ChoiceLoader, FileSystemLoader
+from note_loader import load_note_content
 
 app = Flask(__name__, template_folder="Pages", static_folder="Stylesheets")
 app.jinja_loader = ChoiceLoader([
@@ -35,32 +34,14 @@ def module(code):
         path = os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")
         with open(path) as f:
             year_data = json.load(f)
-        for mod in year_data["modules"]:
-            if mod["code"].upper() == code.upper():
-                return render_template("Module.html", module=mod, year=year_num, year_data=year_data)
+        for mod_code, mod in year_data["modules"].items():
+            if mod_code.upper() == code.upper():
+                return render_template("Module.html", module={**mod, "code": mod_code}, year=year_num, year_data=year_data)
     abort(404)
-
-def load_note_content(note_name):
-    """Try .md then .tex. Returns HTML content string, or None if not found."""
-    md_path = os.path.join(NOTE_DATA_DIR, f"{note_name}.md")
-    tex_path = os.path.join(NOTE_DATA_DIR, f"{note_name}.tex")
-
-    if os.path.isfile(md_path):
-        with open(md_path, encoding="utf-8") as f:
-            raw = f.read()
-        return markdown.markdown(raw, extensions=["tables", "fenced_code", "toc"])
-
-    if os.path.isfile(tex_path):
-        with open(tex_path, encoding="utf-8") as f:
-            raw = f.read()
-        return pypandoc.convert_text(raw, "html", format="latex", extra_args=["--mathjax"])
-
-    return None
-
 
 @app.route("/notes/<module_code>/<note_name>")
 def note(module_code, note_name):
-    content = load_note_content(note_name)
+    content = load_note_content(note_name, NOTE_DATA_DIR)
     if content is None:
         abort(404)
 
@@ -69,13 +50,13 @@ def note(module_code, note_name):
         path = os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")
         with open(path) as f:
             year_data = json.load(f)
-        for mod in year_data["modules"]:
-            if mod["code"].upper() == module_code.upper():
+        for mod_code, mod in year_data["modules"].items():
+            if mod_code.upper() == module_code.upper():
                 return render_template(
                     "Notes.html",
                     content=content,
                     note_title=note_name,
-                    module=mod,
+                    module={**mod, "code": mod_code},
                     year=year_num,
                     year_data=year_data,
                 )
