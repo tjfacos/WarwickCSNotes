@@ -5,9 +5,11 @@ Repository for notes.
 ## Local Testing
 
 Run:
+```bash
+uv run app.py
 ```
-flask run
-```
+Or install dependencies with `uv sync` and run `flask run`.
+
 Server-side output will be in the terminal.
 
 Go to:
