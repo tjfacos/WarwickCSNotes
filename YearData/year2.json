@@ -5,6 +5,7 @@
         "CS241": {
             "tagline": "Processes, Scheduling, C",
             "name": "Operating Systems and Computer Networks",
+            "authors": [],
             "notes": [
                 {"title": "Threading", "url": "#"},
                 {"title": "Scheduling", "url": "#"},
@@ -24,6 +25,7 @@
         "CS257": {
             "tagline": "Remember CS132? Version 2 dropped",
             "name": "Advanced Computer Architecture",
+            "authors": [],
             "notes": [
                 {"title": "Crying on the inside", "url": "#"}
             ],
@@ -39,6 +41,7 @@
         "CS258": {
             "tagline": "Relational models, SQL, and pain",
             "name": "Database Systems",
+            "authors": [],
             "notes": [
                 {"title": "Relational Model", "url": "#"}
             ],
@@ -54,6 +57,7 @@
         "CS259": {
             "tagline": "Automata and fun",
             "name": "Formal Languages",
+            "authors": [],
             "notes": [
                 {"title": "Regular Languages & DFAs", "url": "#"},
                 {"title": "NFAs", "url": "#"},
@@ -69,6 +73,7 @@
         "CS260": {
             "tagline": "Algorithm paradigms and also complexity classes",
             "name": "Algorithms",
+            "authors": [],
             "notes": [
                 {"title": "Complexity & Big-O", "url": "#"},
                 {"title": "Divide & Conquer", "url": "#"},
@@ -88,6 +93,7 @@
         "CS261": {
             "tagline": "Nightmare nightmare nightmare",
             "name": "Software Engineering",
+            "authors": [],
             "notes": [
                 {"title": "GET ME OUT OF HERE", "url": "#"}
             ],
@@ -99,6 +105,7 @@
         "CS262": {
             "tagline": "Prolog is kinda fun",
             "name": "Logic and Verification",
+            "authors": [],
             "notes": [
                 {"title": "Propositional Logic", "url": "#"},
                 {"title": "Predicate Logic", "url": "#"},

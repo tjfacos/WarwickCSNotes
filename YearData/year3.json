@@ -5,6 +5,7 @@
         "CS310": {
             "tagline": "Dissertation - either you love it or you hate it",
             "name": "Project",
+            "authors": [],
             "notes": [
                 {"title": "Report Writing Tips", "url": "#"}
             ],
@@ -13,6 +14,7 @@
         "CS325": {
             "tagline": "Build a thing",
             "name": "Compiler Design",
+            "authors": [],
             "notes": [
                 {"title": "Parsing", "url": "#"}
             ],
@@ -28,6 +30,7 @@
         "CS331": {
             "tagline": "Has biology in it for some reason",
             "name": "Neural Computing",
+            "authors": [],
             "notes": [
                 {"title": "Perceptrons & MLPs", "url": "#"}
             ],
@@ -40,6 +43,7 @@
         "CS342": {
             "tagline": "What makes the money",
             "name": "Machine Learning",
+            "authors": [],
             "notes": [
                 {"title": "Probability", "url": "#"}
             ],
@@ -52,6 +56,7 @@
         "CS355": {
             "tagline": "Image things",
             "name": "Digital Forensics",
+            "authors": [],
             "notes": [
                 {"title": "Image fundamentals", "url": "#"}
             ],
