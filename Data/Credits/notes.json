@@ -1,0 +1,16 @@
+{
+    "Sets.md": ["EdDenton", "JakubCzarlinski"],
+    "Probability.md": ["EdDenton"],
+    "Test.tex": [],
+    
+    "Memory.md": ["Flynt"],
+    "Cache.md": ["Flynt"],
+    "CodeOptimisation.md": ["Flynt"],
+    "Processors.md": ["Flynt"],
+    "Pipelining.md": ["Flynt"],
+    "Superscalar.md": ["Flynt"],
+    "Parallel.md": ["Flynt"],
+    "SMPCacheCoherence.md": ["Flynt"],
+    "MultithreadingMulticore.md": ["Flynt"],
+    "StateOfTheArt.md": ["Flynt"]
+}

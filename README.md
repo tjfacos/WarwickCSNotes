@@ -8,6 +8,9 @@ This project uses UV for dependency management. Get UV here: https://docs.astral
 
 ## Local Testing
 
+You need to run the backend and also the frontend.
+
+### Backend
 Run:
 ```bash
 uv run app.py
@@ -16,11 +19,12 @@ Or install dependencies with `uv sync` and run `flask run`.
 
 Server-side output will be in the terminal.
 
-Go to:
+### Frontend
+
+Run (in a separate terminal):
 ```
-https://127.0.0.1/
+bun dev
 ```
-This is the client side.
 
 ## Deploying
 

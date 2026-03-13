@@ -1,11 +1,11 @@
 {
     "year": 2,
     "title": "Year 2",
-    "modules": [
-        {
-            "code": "CS241",
+    "modules": {
+        "CS241": {
             "tagline": "Processes, Scheduling, C",
             "name": "Operating Systems and Computer Networks",
+            "authors": [],
             "notes": [
                 {"title": "Threading", "url": "#"},
                 {"title": "Scheduling", "url": "#"},
@@ -22,10 +22,35 @@
                 {"title": "Lab 2", "url": "#"}
             ]
         },
-        {
-            "code": "CS258",
+        "CS257": {
+            "tagline": "Remember CS132? Version 2 dropped",
+            "name": "Advanced Computer Architecture",
+            "authors": [],
+            "notes": [
+                {"title": "Memory", "url": "/notes/CS257/Memory"},
+                {"title": "Cache", "url": "/notes/CS257/Cache"},
+                {"title": "Code Optimisation", "url": "/notes/CS257/CodeOptimisation"},
+                {"title": "Processors", "url": "/notes/CS257/Processors"},
+                {"title": "Pipelining", "url": "/notes/CS257/Pipelining"},
+                {"title": "Superscalar Architecture", "url": "/notes/CS257/Superscalar"},
+                {"title": "Parallel Processing", "url": "/notes/CS257/Parallel"},
+                {"title": "SMP Cache Coherence", "url": "/notes/CS257/SMPCacheCoherence"},
+                {"title": "Multithreading & Multicore", "url": "/notes/CS257/MultithreadingMulticore"},
+                {"title": "State of the Art", "url": "/notes/CS257/StateOfTheArt"}
+            ],
+            "past_papers": [
+                {"year": "2025", "url": "#"},
+                {"year": "2024", "url": "#"},
+                {"year": "2023", "url": "#"}
+            ],
+            "seminar_exercises": [
+                {"title": "Lab", "url": "#"}
+            ]
+        },
+        "CS258": {
             "tagline": "Relational models, SQL, and pain",
             "name": "Database Systems",
+            "authors": [],
             "notes": [
                 {"title": "Relational Model", "url": "#"}
             ],
@@ -38,10 +63,10 @@
                 {"title": "Lab", "url": "#"}
             ]
         },
-        {
-            "code": "CS259",
+        "CS259": {
             "tagline": "Automata and fun",
             "name": "Formal Languages",
+            "authors": [],
             "notes": [
                 {"title": "Regular Languages & DFAs", "url": "#"},
                 {"title": "NFAs", "url": "#"},
@@ -54,10 +79,10 @@
                 {"year": "2023", "url": "#"}
             ]
         },
-        {
-            "code": "CS260",
+        "CS260": {
             "tagline": "Algorithm paradigms and also complexity classes",
             "name": "Algorithms",
+            "authors": [],
             "notes": [
                 {"title": "Complexity & Big-O", "url": "#"},
                 {"title": "Divide & Conquer", "url": "#"},
@@ -74,10 +99,10 @@
                 {"title": "da", "url": "#"}
             ]
         },
-        {
-            "code": "CS261",
+        "CS261": {
             "tagline": "Nightmare nightmare nightmare",
             "name": "Software Engineering",
+            "authors": [],
             "notes": [
                 {"title": "GET ME OUT OF HERE", "url": "#"}
             ],
@@ -86,10 +111,10 @@
                 {"year": "2024", "url": "#"}
             ]
         },
-        {
-            "code": "CS262",
+        "CS262": {
             "tagline": "Prolog is kinda fun",
             "name": "Logic and Verification",
+            "authors": [],
             "notes": [
                 {"title": "Propositional Logic", "url": "#"},
                 {"title": "Predicate Logic", "url": "#"},
@@ -101,5 +126,5 @@
                 {"year": "2023", "url": "#"}
             ]
         }
-    ]
+    }
 }

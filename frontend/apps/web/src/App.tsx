@@ -5,6 +5,7 @@ import { Welcome } from "./pages/welcome";
 import { YearPage } from "./pages/year";
 import { ModulePage } from "./pages/module";
 import { NotePage } from "./pages/note";
+import { AcknowledgementsPage } from "./pages/acknowledgements";
 
 export function App() {
   return (
@@ -16,6 +17,7 @@ export function App() {
           <Route path="/year/:year" element={<YearPage />} />
           <Route path="/module/:code" element={<ModulePage />} />
           <Route path="/notes/:code/:note" element={<NotePage />} />
+          <Route path="/acknowledgements" element={<AcknowledgementsPage />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

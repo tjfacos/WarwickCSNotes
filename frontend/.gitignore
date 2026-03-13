@@ -25,6 +25,6 @@ dist
 # Debug
 npm-debug.log*
 
-# Misc
+# Misc (smh Apple users)
 .DS_Store
 *.pem

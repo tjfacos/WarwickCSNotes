@@ -1,66 +1,64 @@
 import json
 import os
-from flask import Flask, render_template, abort
-from jinja2 import ChoiceLoader, FileSystemLoader
-from note_loader import load_note_content
+from flask import Flask, abort, Response
 
-app = Flask(__name__, template_folder="Pages", static_folder="Stylesheets")
-app.jinja_loader = ChoiceLoader([
-    FileSystemLoader("Pages"),
-    FileSystemLoader("components"),
-])
+app = Flask(__name__)
 
-YEAR_DATA_DIR = os.path.join(os.path.dirname(__file__), "YearData")
-NOTE_DATA_DIR = os.path.join(os.path.dirname(__file__), "NoteData")
+BASE_DIR = os.path.dirname(__file__)
+YEAR_DATA_DIR = os.path.join(BASE_DIR, "Data", "YearData")
+NOTE_DATA_DIR = os.path.join(BASE_DIR, "Data", "NoteData")
+CREDITS_DIR = os.path.join(BASE_DIR, "Data", "Credits")
+CREDITS_FILE = os.path.join(CREDITS_DIR, "people.json")
+NOTE_EXTENSIONS = ('md', 'tex', 'typ')
 
-@app.route("/")
-def index():
-    return render_template("Welcome.html")
-
-@app.route("/year/<int:year_num>")
-def year(year_num):
+@app.route("/api/year/<int:year_num>")
+def api_year(year_num):
     if year_num not in (1, 2, 3):
         abort(404)
+    with open(os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")) as f:
+        return json.load(f)
 
-    path = os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")
-    with open(path) as f:
-        year_data = json.load(f)
-
-    return render_template("Year.html", year_data=year_data)
-
-@app.route("/module/<code>")
-def module(code):
+@app.route("/api/module/<code>")
+def api_module(code):
     for year_num in (1, 2, 3):
-        path = os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")
-        with open(path) as f:
+        with open(os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")) as f:
             year_data = json.load(f)
         for mod_code, mod in year_data["modules"].items():
             if mod_code.upper() == code.upper():
-                return render_template("Module.html", module={**mod, "code": mod_code}, year=year_num, year_data=year_data)
+                return {**mod, "code": mod_code, "year": year_num}
     abort(404)
+
+@app.route("/api/credits")
+def api_credits():
+    with open(CREDITS_FILE) as f:
+        return json.load(f)
+
+@app.route("/api/credits/notes")
+def api_credits_notes():
+    with open(os.path.join(CREDITS_DIR, "notes.json")) as f:
+        return json.load(f)
 
 @app.route("/notes/<module_code>/<note_name>")
 def note(module_code, note_name):
-    content = load_note_content(note_name, NOTE_DATA_DIR)
-    if content is None:
+    if '.' in note_name:
+        path = os.path.join(NOTE_DATA_DIR, note_name)
+        ext = note_name.rsplit('.', 1)[-1]
+    else:
+        path = None
+        ext = None
+        for e in NOTE_EXTENSIONS:
+            p = os.path.join(NOTE_DATA_DIR, f"{note_name}.{e}")
+            if os.path.exists(p):
+                path = p
+                ext = e
+                break
+
+    if not path or not os.path.exists(path):
         abort(404)
 
-    # Find the module for back-button and navbar context
-    for year_num in (1, 2, 3):
-        path = os.path.join(YEAR_DATA_DIR, f"year{year_num}.json")
-        with open(path) as f:
-            year_data = json.load(f)
-        for mod_code, mod in year_data["modules"].items():
-            if mod_code.upper() == module_code.upper():
-                return render_template(
-                    "Notes.html",
-                    content=content,
-                    note_title=note_name,
-                    module={**mod, "code": mod_code},
-                    year=year_num,
-                    year_data=year_data,
-                )
-    abort(404)
+    with open(path, encoding='utf-8') as f:
+        content = f.read()
+    return Response(content, content_type='text/plain', headers={'X-Note-Extension': ext})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
