@@ -19,3 +19,7 @@ This is the client side.
 ## Deploying
 
 Not figured this out yet.
+
+## More Info
+
+Go to **Docs.md** for more detailed information about the project and its design decisions.
