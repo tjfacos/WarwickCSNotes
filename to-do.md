@@ -13,3 +13,9 @@
 - Landing Page
     - Links to the important things
     - Disclaimer maybe?
+ 
+- Foundations Section
+    - LaTex
+    - GitHub
+    - MatLab
+    - VSCode
