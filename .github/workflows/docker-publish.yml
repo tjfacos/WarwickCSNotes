@@ -19,9 +19,9 @@ jobs:
       matrix:
         include:
           - name: backend
-            dockerfile: Dockerfile.backend
+            file: Dockerfile.backend
           - name: frontend
-            dockerfile: Dockerfile.frontend
+            file: Dockerfile.frontend
 
     steps:
       - name: Checkout
@@ -47,7 +47,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          dockerfile: ${{ matrix.dockerfile }}
+          file: ${{ matrix.file }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
