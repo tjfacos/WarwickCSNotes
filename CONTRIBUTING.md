@@ -33,6 +33,8 @@ General workflow:
 3) Run locally to check it works - see the README's *Local Testing* section (optional for basic changes like adding/editing note or solution files)
 4) Open a pull request against `main` with a short description of what changed and why
 
+If you don't understand how to do the above, you can also just send me (rexmortem60) the files on Discord.
+
 ### Adding a resource (note or solution)
 
 Resources live under `Data/Resources/`:
@@ -44,7 +46,7 @@ Steps:
 
 1) **Write the file:** Markdown (`.md`), LaTeX (`.tex`), or PDF (`.pdf`) are all supported! Markdown with embedded LaTeX (via `$...$` / `$$...$$`) is the most common choice, renders well, and is easy for multiple people to collaborate on.
 
-2. **Link it:** Open `Data/YearData/year<N>.json`, find the module, and add an entry.
+2) **Link it:** Open `Data/YearData/year<N>.json`, find the module, and add an entry.
 Note that these entries are separated by commas, and the last entry shouldn't have a comma at the end (see `CS130` in `year1.json` for an example):
 
   - **Notes:** Add to the module's `notes` array e.g.:
