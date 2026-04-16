@@ -52,14 +52,14 @@ The `--build` is for forcing a fresh image to be built.
 The Docker image is built and pushed to GHCR on every push to `main`. It is available at:
 
 ```
-ghcr.io/rexmortem/warwickcsnotes:latest
+ghcr.io/warwickcsnotes/warwickcsnotes:latest
 ```
 
 To deploy via Portainer UWCS:
 
 - Go to [Portainer UWCS](https://portainer.uwcs.co.uk/)
 - Click **Add Container**
-- Set the **Image** to `ghcr.io/rexmortem/warwickcsnotes:latest`
+- Set the **Image** to `ghcr.io/warwickcsnotes/warwickcsnotes:latest`
 - Under port mapping, set **Host** to a random unique port number and **Container** to `3000`
 - Under **Advanced Settings**, add an environment variable: `VIRTUAL_HOST=csnotes`
 - Deploy the container
