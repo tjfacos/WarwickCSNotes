@@ -27,4 +27,4 @@ tsconfig.tsbuildinfo
 .ropeproject
 
 # Personal LLMs
-/.claude
+.claude/
