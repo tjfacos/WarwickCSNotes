@@ -1,7 +1,7 @@
 import json
 import os
 
-from flask import Flask, Response, abort, send_from_directory
+from flask import Flask, Response, abort, request, send_from_directory
 
 app = Flask(__name__)
 BASE_DIR = os.path.dirname(__file__)
@@ -99,7 +99,12 @@ def resource(category, module_code, filename):
     inside each category directory. Filenames can include the module
     code themselves if they need to be unique per module (e.g. solutions
     use "CS130-2025.md").
+
+    Browser navigations (Accept: text/html) get the SPA shell so the
+    frontend can render the page.  Fetch/XHR requests get the raw file.
     """
+    if "text/html" in request.headers.get("Accept", ""):
+        return send_from_directory(DIST_DIR, "index.html")
     del module_code
     if category not in RESOURCE_CATEGORIES:
         abort(404)
