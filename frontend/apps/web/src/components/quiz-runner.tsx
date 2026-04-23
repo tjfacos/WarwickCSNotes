@@ -259,10 +259,14 @@ export type QuizRunnerProps = {
 };
 
 export function QuizRunner({ questions, pickCount, instaCheck = false }: QuizRunnerProps) {
-  const pick = () =>
-    pickCount !== undefined
-      ? shuffle(questions).slice(0, Math.min(pickCount, questions.length))
-      : questions;
+  // Always shuffle so the order varies per attempt. If pickCount is given,
+  // take a random subset of that size; otherwise include every question.
+  const pick = () => {
+    const shuffled = shuffle(questions);
+    return pickCount !== undefined
+      ? shuffled.slice(0, Math.min(pickCount, questions.length))
+      : shuffled;
+  };
 
   const [selected, setSelected] = useState<Question[]>(pick);
   const [answers, setAnswers] = useState<Record<number, Answer>>({});

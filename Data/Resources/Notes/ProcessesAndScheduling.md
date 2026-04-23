@@ -117,12 +117,13 @@
 > - Preemptive:
 >     - If they do not finish within the time quantum, interrupted.
 > - q large → FCFS, q small → too many context switches.
-> - q usually 10ms - 100ms (context swithc < 10 us)
+> - q usually 10ms - 100ms (context switch < 10 us)
 
 # Forking and Termination
 
 > [!note]- Describe how `fork()` works.
 > - Allows the current process (parent) to create a child process.
+> - Both the parent and the child execute the next instruction following the `fork()` call.
 > - Child address space **is a copy** of the parent address space.
 >     - **Resource sharing options** — specify all/subset/none of parent’s resources.
 >     - **Execution options** — concurrent or wait until children terminate.
