@@ -1,0 +1,34 @@
+{
+    "title": "MP Neuron",
+    "module": "CS331",
+    "description": "The McCulloch-Pitts neuron and how artificial neural networks compare to biological ones.",
+    "questions": [
+        {
+            "type": "text",
+            "prompt": "What kind of inputs and outputs does the MP neuron use?",
+            "accepted": ["binary", "0/1"]
+        },
+        {
+            "type": "match",
+            "prompt": "Match each component of an ANN to the corresponding component of a BNN.",
+            "left": ["Weights", "Output", "Input", "Node", "Threshold"],
+            "right": ["Synapses", "Axon Terminals", "Dendrites", "Soma", "Axon Hillock"],
+            "correct": [0, 1, 2, 3, 4]
+        },
+        {
+            "type": "sort",
+            "prompt": "Sort each property into whether it describes an ANN or a BNN.",
+            "columns": ["ANN", "BNN"],
+            "items": [
+                "Has about $10^{11}$ neurons.",
+                "Has about $10^3$ to $10^5$ neurons.",
+                "Uses continuous memory.",
+                "Is very fast (order of nanoseconds).",
+                "Is quite slow (order of milliseconds).",
+                "Tiny damage leads to severe performance degradation.",
+                "Some (limited) fault tolerance."
+            ],
+            "correct": [1, 0, 0, 0, 1, 1, 0]
+        }
+    ]
+}

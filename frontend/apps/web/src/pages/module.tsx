@@ -78,6 +78,7 @@ export const ModulePage = () => {
   const [people, setPeople] = useState<Record<string, any>>({});
   const [noteCredits, setNoteCredits] = useState<Record<string, string[]>>({});
   const [solutionCredits, setSolutionCredits] = useState<Record<string, string[]>>({});
+  const [quizCredits, setQuizCredits] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     fetch(`/api/module/${code}`)
@@ -95,6 +96,7 @@ export const ModulePage = () => {
     fetch("/api/credits").then(res => res.json()).then(setPeople);
     fetch("/api/credits/notes").then(res => res.json()).then(setNoteCredits);
     fetch("/api/credits/solutions").then(res => res.json()).then(setSolutionCredits);
+    fetch("/api/credits/quizzes").then(res => res.json()).then(setQuizCredits);
   }, []);
 
   useEffect(() => {
@@ -264,13 +266,14 @@ export const ModulePage = () => {
           <h5 className="font-bold mb-2">Quizzes</h5>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {mod.quizzes.map((quiz: any) => (
-              <Link
+              <ResourceCard
                 key={quiz.title}
                 to={quiz.url}
-                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:brightness-110 transition"
+                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:brightness-110 transition cursor-pointer"
               >
                 {quiz.title}
-              </Link>
+                <Contributors authorIds={getContributors(quizCredits, quiz.url)} />
+              </ResourceCard>
             ))}
           </div>
         </div>

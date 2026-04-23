@@ -50,7 +50,8 @@
             ],
             "exercise_solutions": [],
             "quizzes": [
-                {"title": "Biological Neurons", "url": "/quizzes/cs331-biological-neurons"}
+                {"title": "Biological Neurons", "url": "/quizzes/cs331-biological-neurons"},
+                {"title": "MP Neuron", "url": "/quizzes/cs331-mp-neuron"}
             ]
         },
         "CS342": {

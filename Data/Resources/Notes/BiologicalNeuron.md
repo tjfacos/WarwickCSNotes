@@ -6,7 +6,7 @@ Your body needs to **sense** things, think, and **respond** appropriately. To do
 
 The body also has a **Peripheral Nervous System (PNS)** which covers everything around the CNS. 
 
-The fundamental building block of the CNS and PNS is the **neuron** (also called a *nerve cell* or *neural processing unit*), and there are about 100 billion neurons in your brain and somewhere between 50 million and a billion in the spinal cord. 
+The fundamental building block of the CNS and PNS is the **neuron** (also called a *nerve cell* or *neural processing unit*), and there are about 100 billion ($10^11$) neurons in your brain and somewhere between 50 million ($5 \times 10^7$) and a billion ($10^9$) in the spinal cord. 
 
 These neurons aren't all identical: there are sensory neurons, relay neurons (also called *interneurons*), and motor neurons. 
 

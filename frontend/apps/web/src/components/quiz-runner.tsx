@@ -52,11 +52,22 @@ export type MultiTextQuestion = {
   accepted: string[];
 };
 
+/** Drag items from a pool into one of N columns. Each item belongs to exactly
+ *  one correct column. correct[i] gives the correct column index for items[i]. */
+export type SortQuestion = {
+  type: "sort";
+  prompt: string;
+  columns: string[];
+  items: string[];
+  correct: number[];
+};
+
 export type Question =
   | TextQuestion
   | CheckboxQuestion
   | MatchQuestion
-  | MultiTextQuestion;
+  | MultiTextQuestion
+  | SortQuestion;
 
 type Answer = string | number[] | string[];
 type Correctness = "correct" | "partial" | "wrong";
@@ -149,6 +160,13 @@ function grade(q: Question, ans: Answer | undefined): Correctness {
     if (anyMatch > 0) return "partial";
     return "wrong";
   }
+  if (q.type === "sort") {
+    const placement = ans as number[];
+    const hits = q.correct.filter((c, idx) => placement[idx] === c).length;
+    if (hits === q.items.length) return "correct";
+    if (hits > 0) return "partial";
+    return "wrong";
+  }
   const choice = ans as number[];
   return q.correct.every((c, i) => choice[i] === c) ? "correct" : "wrong";
 }
@@ -163,7 +181,19 @@ function pointsFor(q: Question, ans: Answer | undefined): number {
     const hits = matches.filter(m => m.state !== "wrong").length;
     return hits / q.slots;
   }
+  if (q.type === "sort") {
+    const placement = ans as number[];
+    const hits = q.correct.filter((c, idx) => placement[idx] === c).length;
+    return hits / q.items.length;
+  }
   return grade(q, ans) === "wrong" ? 0 : 1;
+}
+
+/** "a", "a or b", "a, b or c", "a, b, c or d". */
+function joinOr(items: string[]): string {
+  if (items.length <= 1) return items[0] ?? "";
+  if (items.length === 2) return `${items[0]} or ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")} or ${items[items.length - 1]}`;
 }
 
 function formatScore(n: number): string {
@@ -180,6 +210,19 @@ function shuffle<T>(arr: T[]): T[] {
     [pool[i], pool[j]] = [pool[j]!, pool[i]!];
   }
   return pool;
+}
+
+/** Shuffle the right-hand options of a match question so the dropdowns aren't
+ *  in the same order every attempt. correct[] is rewritten to point at the
+ *  options' new indices, so grading code is unchanged. */
+function randomiseMatchOrder(q: Question): Question {
+  if (q.type !== "match") return q;
+  const perm = shuffle(q.right.map((_, i) => i));
+  return {
+    ...q,
+    right: perm.map(i => q.right[i]!),
+    correct: q.correct.map(c => perm.indexOf(c)),
+  };
 }
 
 /** Custom dropdown that wraps long option text, unlike a native <select>. */
@@ -249,6 +292,186 @@ function WrappingSelect({
   );
 }
 
+/** Drag-and-drop sort question. Items live in a "pool" until placed; user drags
+ *  each into one of `q.columns`. Pointer events drive everything so mouse and
+ *  touch work the same way without an extra dependency. */
+function SortRenderer({
+  q,
+  placement,
+  submitted,
+  instaCheck,
+  onChange,
+}: {
+  q: SortQuestion;
+  placement: number[];
+  submitted: boolean;
+  instaCheck: boolean;
+  onChange: (next: number[]) => void;
+}) {
+  // Drop zones registered by their column index. -1 is the pool.
+  const zonesRef = useRef<Map<number, HTMLDivElement>>(new Map());
+  const setZone = (col: number) => (el: HTMLDivElement | null) => {
+    if (el) zonesRef.current.set(col, el);
+    else zonesRef.current.delete(col);
+  };
+
+  const [drag, setDrag] = useState<{
+    itemIdx: number;
+    pointerX: number;
+    pointerY: number;
+    offsetX: number;
+    offsetY: number;
+    width: number;
+    height: number;
+    overCol: number | null;
+  } | null>(null);
+
+  const findColAt = (x: number, y: number): number | null => {
+    for (const [col, el] of zonesRef.current) {
+      const rect = el.getBoundingClientRect();
+      if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+        return col;
+      }
+    }
+    return null;
+  };
+
+  const moveItem = (itemIdx: number, col: number) => {
+    if (submitted) return;
+    const next = placement.slice();
+    next[itemIdx] = col;
+    onChange(next);
+  };
+
+  const onPointerDown = (e: React.PointerEvent<HTMLDivElement>, itemIdx: number) => {
+    if (submitted) return;
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    target.setPointerCapture(e.pointerId);
+    setDrag({
+      itemIdx,
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      width: rect.width,
+      height: rect.height,
+      overCol: null,
+    });
+  };
+
+  const onPointerMove = (e: React.PointerEvent<HTMLDivElement>, itemIdx: number) => {
+    if (!drag || drag.itemIdx !== itemIdx) return;
+    const overCol = findColAt(e.clientX, e.clientY);
+    setDrag(d => (d ? { ...d, pointerX: e.clientX, pointerY: e.clientY, overCol } : null));
+  };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLDivElement>, itemIdx: number) => {
+    if (!drag || drag.itemIdx !== itemIdx) return;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (drag.overCol !== null) moveItem(itemIdx, drag.overCol);
+    setDrag(null);
+  };
+
+  // Show feedback per item: on full submit, or in insta-check mode once the
+  // item has been placed in a column (still-in-pool items stay neutral).
+  const itemFeedback = (itemIdx: number): Correctness | null => {
+    const col = placement[itemIdx];
+    if (col === undefined || col < 0) return submitted ? "wrong" : null;
+    if (!submitted && !instaCheck) return null;
+    return col === q.correct[itemIdx] ? "correct" : "wrong";
+  };
+
+  const itemsIn = (col: number): number[] =>
+    placement.map((p, idx) => (p === col ? idx : -1)).filter(idx => idx >= 0);
+
+  const renderItem = (itemIdx: number, isGhost = false) => {
+    const fb = itemFeedback(itemIdx);
+    const border =
+      fb === "correct" ? "border-green-500 bg-green-500/10"
+      : fb === "wrong" ? "border-red-500 bg-red-500/10"
+      : "border-border bg-background hover:bg-muted";
+    const isDragSource = drag?.itemIdx === itemIdx && !isGhost;
+    return (
+      <div
+        key={itemIdx}
+        onPointerDown={e => onPointerDown(e, itemIdx)}
+        onPointerMove={e => onPointerMove(e, itemIdx)}
+        onPointerUp={e => onPointerUp(e, itemIdx)}
+        onPointerCancel={e => onPointerUp(e, itemIdx)}
+        className={`px-3 py-2 border rounded text-sm select-none ${border} ${
+          submitted ? "cursor-not-allowed" : "cursor-grab active:cursor-grabbing"
+        } ${isDragSource ? "opacity-30" : ""}`}
+        style={{ touchAction: "none" }}
+      >
+        <InlineRendered>{q.items[itemIdx] ?? ""}</InlineRendered>
+      </div>
+    );
+  };
+
+  const zoneClasses = (col: number) => {
+    const isOver = drag?.overCol === col;
+    return `min-h-20 p-2 border-2 rounded-lg flex flex-col gap-2 transition-colors ${
+      isOver ? "border-primary bg-primary/10" : "border-dashed border-border bg-muted/30"
+    }`;
+  };
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs text-muted-foreground mb-1">Unsorted</p>
+        <div ref={setZone(-1)} className={zoneClasses(-1)}>
+          {itemsIn(-1).length === 0 && (
+            <p className="text-xs text-muted-foreground italic px-1">
+              Drag items here to remove them from a column.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {itemsIn(-1).map(idx => renderItem(idx))}
+          </div>
+        </div>
+      </div>
+      <div className={`grid gap-3 ${q.columns.length === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"}`}>
+        {q.columns.map((col, ci) => (
+          <div key={ci}>
+            <p className="text-sm font-medium mb-1">{col}</p>
+            <div ref={setZone(ci)} className={zoneClasses(ci)}>
+              {itemsIn(ci).map(idx => renderItem(idx))}
+            </div>
+          </div>
+        ))}
+      </div>
+      {drag && (
+        <div
+          className="pointer-events-none fixed z-50 px-3 py-2 border rounded text-sm bg-background shadow-lg opacity-90"
+          style={{
+            left: drag.pointerX - drag.offsetX,
+            top: drag.pointerY - drag.offsetY,
+            width: drag.width,
+          }}
+        >
+          <InlineRendered>{q.items[drag.itemIdx] ?? ""}</InlineRendered>
+        </div>
+      )}
+      {submitted && placement.some((p, idx) => p !== q.correct[idx]) && (
+        <div className="text-sm text-muted-foreground mt-2 space-y-1">
+          {q.items.map((item, idx) =>
+            placement[idx] !== q.correct[idx] ? (
+              <p key={idx}>
+                <InlineRendered>{item}</InlineRendered>
+                {" → "}
+                <span className="font-medium">{q.columns[q.correct[idx]!]}</span>
+              </p>
+            ) : null,
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export type QuizRunnerProps = {
   questions: Question[];
   /** If set, picks a random subset of this size. Otherwise uses all questions in order. */
@@ -263,9 +486,10 @@ export function QuizRunner({ questions, pickCount, instaCheck = false }: QuizRun
   // take a random subset of that size; otherwise include every question.
   const pick = () => {
     const shuffled = shuffle(questions);
-    return pickCount !== undefined
+    const subset = pickCount !== undefined
       ? shuffled.slice(0, Math.min(pickCount, questions.length))
       : shuffled;
+    return subset.map(randomiseMatchOrder);
   };
 
   const [selected, setSelected] = useState<Question[]>(pick);
@@ -314,7 +538,7 @@ export function QuizRunner({ questions, pickCount, instaCheck = false }: QuizRun
     setSelected(pick());
     setAnswers({});
     setSubmitted(false);
-    setChecked({});
+    setSnapshots({});
   };
 
   // Tailwind colour map: partial answers share the correct (green) colour
@@ -358,7 +582,7 @@ export function QuizRunner({ questions, pickCount, instaCheck = false }: QuizRun
                     {show && inputG !== "correct" && (
                       <p className="text-sm text-muted-foreground mt-2">
                         {inputG === "partial" ? "Pretty much, exact answer: " : "Accepted: "}
-                        <InlineRendered>{q.accepted[0] ?? ""}</InlineRendered>
+                        <InlineRendered>{joinOr(q.accepted)}</InlineRendered>
                       </p>
                     )}
                   </div>
@@ -443,13 +667,27 @@ export function QuizRunner({ questions, pickCount, instaCheck = false }: QuizRun
                           )}
                           {submitted && slotResult && slotResult.state === "wrong" && missing.length > 0 && (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Accepted: {missing.join(", ")}
+                              Accepted: {joinOr(missing)}
                             </p>
                           )}
                         </div>
                       );
                     })}
                   </div>
+                );
+              })()}
+
+              {q.type === "sort" && (() => {
+                const placement: number[] =
+                  (answers[i] as number[]) ?? Array(q.items.length).fill(-1);
+                return (
+                  <SortRenderer
+                    q={q}
+                    placement={placement}
+                    submitted={submitted}
+                    instaCheck={instaCheck}
+                    onChange={next => setAnswers(a => ({ ...a, [i]: next }))}
+                  />
                 );
               })()}
 

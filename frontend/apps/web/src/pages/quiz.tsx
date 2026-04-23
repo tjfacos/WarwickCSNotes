@@ -11,11 +11,15 @@ type Quiz = {
   questions: Question[];
 };
 
+type Person = { name: string };
+
 export const QuizPage = () => {
   const { id } = useParams();
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [error, setError] = useState(false);
   const [instaCheck] = useInstaCheck();
+  const [people, setPeople] = useState<Record<string, Person>>({});
+  const [credits, setCredits] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     setQuiz(null);
@@ -30,6 +34,11 @@ export const QuizPage = () => {
   }, [id]);
 
   useEffect(() => {
+    fetch("/api/credits").then(res => res.json()).then(setPeople);
+    fetch("/api/credits/quizzes").then(res => res.json()).then(setCredits);
+  }, []);
+
+  useEffect(() => {
     if (quiz) document.title = `${quiz.title} Quiz`;
   }, [quiz]);
 
@@ -38,6 +47,8 @@ export const QuizPage = () => {
 
   const backTo = quiz.module ? `/module/${quiz.module}` : `/quizzes`;
   const backLabel = quiz.module ?? "All quizzes";
+
+  const authors = credits[`${id}.json`] ?? [];
 
   return (
     <div className="container mx-auto p-4 max-w-3xl">
@@ -53,6 +64,22 @@ export const QuizPage = () => {
 
       <h1 className="text-3xl font-bold mb-1">{quiz.title}</h1>
       {quiz.module && <p className="text-sm text-muted-foreground">{quiz.module}</p>}
+      {authors.length > 0 && (
+        <p className="text-xs text-muted-foreground italic mt-1">
+          Created by{" "}
+          {authors.map((authorId, idx) => (
+            <span key={authorId}>
+              {idx > 0 && ", "}
+              <Link
+                to={`/acknowledgements#${authorId}`}
+                className="hover:text-primary hover:underline transition-colors"
+              >
+                {people[authorId]?.name ?? authorId}
+              </Link>
+            </span>
+          ))}
+        </p>
+      )}
       {quiz.description && <p className="text-muted-foreground mt-2 mb-6">{quiz.description}</p>}
 
       <QuizRunner questions={quiz.questions} instaCheck={instaCheck} />
