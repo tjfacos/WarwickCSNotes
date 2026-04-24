@@ -1,12 +1,27 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "./theme-provider";
 import { Button } from "@workspace/ui/components/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@workspace/ui/components/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Menu } from "lucide-react";
 
 export function Navbar() {
   const { setTheme } = useTheme();
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const onModuleOrNote = location.pathname.startsWith('/module/') || location.pathname.startsWith('/notes/');
+  const lastYear = onModuleOrNote ? localStorage.getItem('last-year') : null;
+
+  const navItems: { to: string; label: string; active: boolean }[] = [
+    ...[1, 2, 3, 4].map((year) => ({
+      to: `/year/${year}`,
+      label: `Year ${year}`,
+      active: location.pathname.startsWith(`/year/${year}`) || (onModuleOrNote && lastYear === String(year)),
+    })),
+    { to: "/quizzes", label: "Quizzes", active: location.pathname.startsWith('/quizzes') },
+    { to: "/careers", label: "Careers", active: location.pathname === '/careers' },
+    { to: "/acknowledgements", label: "Credits", active: location.pathname === '/acknowledgements' },
+  ];
 
   return (
     <nav className="border-b border-white/10 bg-nav py-4 text-nav-foreground">
@@ -18,58 +33,43 @@ export function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {[1, 2, 3, 4].map((year) => {
-            const onYearPath = location.pathname.startsWith(`/year/${year}`);
-            const onModuleOrNote = location.pathname.startsWith('/module/') || location.pathname.startsWith('/notes/');
-            const lastYear = onModuleOrNote ? localStorage.getItem('last-year') : null;
-            const active = onYearPath || (onModuleOrNote && lastYear === String(year));
-            return (
+          <div className="hidden lg:flex items-center gap-2">
+            {navItems.map((item) => (
               <Link
-                key={year}
-                to={`/year/${year}`}
+                key={item.to}
+                to={item.to}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                  active
+                  item.active
                     ? "bg-white/20 text-nav-foreground"
                     : "text-nav-foreground/75 hover:bg-white/10 hover:text-nav-foreground"
                 }`}
               >
-                Year {year}
+                {item.label}
               </Link>
-            );
-          })}
+            ))}
+          </div>
 
-          <Link
-            to="/quizzes"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              location.pathname.startsWith('/quizzes')
-                ? "bg-white/20 text-nav-foreground"
-                : "text-nav-foreground/75 hover:bg-white/10 hover:text-nav-foreground"
-            }`}
-          >
-            Quizzes
-          </Link>
-
-          <Link
-            to="/careers"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              location.pathname === '/careers'
-                ? "bg-white/20 text-nav-foreground"
-                : "text-nav-foreground/75 hover:bg-white/10 hover:text-nav-foreground"
-            }`}
-          >
-            Careers
-          </Link>
-
-          <Link
-            to="/acknowledgements"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-              location.pathname === '/acknowledgements'
-                ? "bg-white/20 text-nav-foreground"
-                : "text-nav-foreground/75 hover:bg-white/10 hover:text-nav-foreground"
-            }`}
-          >
-            Credits
-          </Link>
+          <div className="lg:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="cursor-pointer border-white/20 text-nav-foreground bg-transparent hover:bg-white/10 hover:text-nav-foreground"
+                  aria-label="Open menu"
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {navItems.map((item) => (
+                  <DropdownMenuItem key={item.to} onClick={() => navigate(item.to)}>
+                    {item.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
