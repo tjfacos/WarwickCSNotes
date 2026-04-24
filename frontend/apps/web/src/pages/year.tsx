@@ -1,5 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { Page } from "@/components/page";
+import { PageHeader } from "@/components/page-header";
 
 export const YearPage = () => {
   const { year } = useParams();
@@ -18,17 +20,14 @@ export const YearPage = () => {
     document.title = `Year ${year}`;
   }, [year]);
 
-  if (!data) return <div className="container mx-auto p-4">Loading...</div>;
+  if (!data) return <Page>Loading...</Page>;
 
   return (
-    <div className="container mx-auto p-4">
-      <Link to="/" className="inline-flex items-center gap-2 mb-6 px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted transition-colors">
-        &larr; Dashboard
-      </Link>
-      <h1 className="mb-4">{data.title}</h1>
+    <Page>
+      <PageHeader title={data.title} back={{ to: "/", label: "Dashboard" }} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(data.modules).map(([code, mod]: [string, any]) => (
-          <Link key={code} to={`/module/${code}`} className="block p-4 bg-surface text-surface-foreground border rounded-lg shadow hover:brightness-110 transition">
+          <Link key={code} to={`/module/${code}`} className="block p-4 bg-surface text-surface-foreground border rounded-lg shadow hover:bg-surface-hover transition-colors">
             <h6 className="text-sm font-semibold text-primary">{code}</h6>
             <h5 className="font-bold">{mod.name}</h5>
             <p className="text-sm text-muted-foreground mt-1">{mod.tagline}</p>
@@ -39,6 +38,6 @@ export const YearPage = () => {
           </Link>
         ))}
       </div>
-    </div>
+    </Page>
   );
 };

@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import { ExternalLink } from "lucide-react";
+import { Page } from "@/components/page";
+import { PageHeader } from "@/components/page-header";
+import { PageSection } from "@/components/page-section";
 
 type CareerLink = {
   name: string;
@@ -37,7 +40,7 @@ function CareerCard({ link }: { link: CareerLink }) {
       href={link.url}
       target="_blank"
       rel="noreferrer"
-      className="block p-5 bg-surface text-surface-foreground border rounded-lg hover:brightness-110 transition"
+      className="block p-5 bg-surface text-surface-foreground border rounded-lg hover:bg-surface-hover transition-colors"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <h3 className="text-lg font-semibold">{link.name}</h3>
@@ -52,26 +55,25 @@ export const CareersPage = () => {
   useEffect(() => { document.title = "Careers"; }, []);
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-4xl font-bold mb-2">Careers</h1>
-      <p className="text-muted-foreground mb-8">
-        Resources for internships, placements, CV support, and side projects.
-      </p>
+    <Page>
+      <PageHeader
+        title="Careers"
+        subtitle="Resources for internships, placements, CV support, and side projects."
+        back={{ to: "/", label: "Dashboard" }}
+      />
 
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4">From the Department</h2>
+      <PageSection title="From the Department" className="mb-10">
         <CareerCard link={DCS} />
-      </section>
+      </PageSection>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Student Societies</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Societies run by students. They host CV workshops, industry talks, hackathons, and side-project groups; all great for building experience and networks.
-        </p>
+      <PageSection
+        title="Student Societies"
+        subtitle="Societies run by students. They host CV workshops, industry talks, hackathons, and side-project groups; all great for building experience and networks."
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {SOCIETIES.map(s => <CareerCard key={s.name} link={s} />)}
         </div>
-      </section>
-    </div>
+      </PageSection>
+    </Page>
   );
 };

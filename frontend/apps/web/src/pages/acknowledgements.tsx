@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
+import { Page } from "@/components/page";
+import { PageHeader } from "@/components/page-header";
 import { Github, Linkedin } from "lucide-react";
 
 type Person = {
@@ -81,16 +83,19 @@ export const AcknowledgementsPage = () => {
   return (
     <>
     <title>Acknowledgements</title>
-    <div className="container mx-auto p-4 max-w-3xl">
-      <h1 className="text-4xl font-bold mb-2">Acknowledgements</h1>
-      <p className="text-muted-foreground mb-8">The people behind Warwick CS Notes.</p>
+    <Page>
+      <PageHeader
+        title="Acknowledgements"
+        subtitle="The people behind Warwick CS Notes."
+        back={{ to: "/", label: "Dashboard" }}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {people.map(person => (
           <PersonCard key={person.id} person={person} />
         ))}
       </div>
-    </div>
+    </Page>
     </>
   );
 };

@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { MarkdownContent } from "@/components/markdown-content";
+import { Page } from "@/components/page";
 import { useContent } from "@/lib/use-content";
 
 // Per-category chrome. Adding a new category is a matter of extending this map.
@@ -32,22 +33,22 @@ export const ResourcePage = () => {
     }
   }, [filename, code, category]);
 
-  if (!extension) return <div className="container mx-auto p-4">Loading...</div>;
+  if (!extension) return <Page>Loading...</Page>;
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
+    <Page>
       <div className="flex items-center gap-4 mb-6 flex-wrap">
-        <Link
-          to={`/module/${code}`}
-          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
-        >
-          &larr; {code}
-        </Link>
         {modName && (
           <span className="text-muted-foreground text-sm">
             {modName} - {CATEGORY_LABEL[category] ?? category}
           </span>
         )}
+        <Link
+          to={`/module/${code}`}
+          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted transition-colors ml-auto shrink-0"
+        >
+          &larr; {code}
+        </Link>
       </div>
 
       {extension === 'pdf' ? (
@@ -59,6 +60,6 @@ export const ResourcePage = () => {
       ) : (
         <MarkdownContent content={content} extension={extension} />
       )}
-    </div>
+    </Page>
   );
 };

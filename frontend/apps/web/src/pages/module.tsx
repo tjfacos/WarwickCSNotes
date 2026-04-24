@@ -1,6 +1,8 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { BadgeCheck, Construction } from "lucide-react";
+import { Page } from "@/components/page";
+import { PageHeader } from "@/components/page-header";
 
 /** Link-like card that can safely contain other interactive children
  *  (e.g. author links). Implemented as a div + onClick to avoid nesting
@@ -112,7 +114,7 @@ export const ModulePage = () => {
     if (mod) document.title = `${mod.code} Notes`;
   }, [mod]);
 
-  if (!mod) return <div className="container mx-auto p-4">Loading module...</div>;
+  if (!mod) return <Page>Loading module...</Page>;
 
   // For any resource URL (/resources/<Category>/<Code>/<Filename>), match the
   // filename against a credits dict whose keys are filenames (with extension).
@@ -150,17 +152,13 @@ export const ModulePage = () => {
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Link
-        to={`/year/${mod.year}`}
-        className="inline-flex items-center gap-2 mb-6 px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
-      >
-        &larr; Year {mod.year}
-      </Link>
-
-      <h1 className="text-3xl font-bold">{mod.code}</h1>
-      <h4 className="text-xl text-muted-foreground">{mod.name}</h4>
-      <div className="flex gap-4 mt-1 mb-2">
+    <Page>
+      <PageHeader
+        title={mod.code}
+        subtitle={mod.name}
+        back={{ to: `/year/${mod.year}`, label: `Year ${mod.year}` }}
+      />
+      <div className="flex gap-4 -mt-4 mb-2">
         {mod.Term && <span className="text-sm font-medium text-detail">Term {mod.Term}</span>}
         {mod.CATS && <span className="text-sm font-medium text-detail">{mod.CATS} CATS</span>}
       </div>
@@ -278,7 +276,7 @@ export const ModulePage = () => {
               <ResourceCard
                 key={quiz.title}
                 to={quiz.url}
-                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:brightness-110 transition cursor-pointer"
+                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:bg-surface-hover transition-colors cursor-pointer"
               >
                 {quiz.title}
                 <Contributors authorIds={getContributors(quizCredits, quiz.url)} />
@@ -305,7 +303,7 @@ export const ModulePage = () => {
                   href={r.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="block p-3 border rounded bg-surface text-surface-foreground text-sm hover:brightness-110 transition"
+                  className="block p-3 border rounded bg-surface text-surface-foreground text-sm hover:bg-surface-hover transition-colors"
                 >
                   {body}
                 </a>
@@ -327,7 +325,7 @@ export const ModulePage = () => {
               <Link
                 key={extra.title}
                 to={extra.url}
-                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:brightness-110 transition"
+                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:bg-surface-hover transition-colors"
               >
                 {extra.title}
                 <Badges verified={extra.verified} unfinished={extra.unfinished} />
@@ -336,6 +334,6 @@ export const ModulePage = () => {
           </div>
         </div>
       )}
-    </div>
+    </Page>
   );
 };

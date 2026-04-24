@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { QuizRunner, type Question } from "@/components/quiz-runner";
 import { InstaCheckToggle } from "@/components/insta-check-toggle";
+import { Page } from "@/components/page";
+import { PageHeader } from "@/components/page-header";
 import { useInstaCheck } from "@/lib/use-insta-check";
 
 type Quiz = {
@@ -49,8 +51,8 @@ export const QuizPage = () => {
     if (quiz) document.title = `${quiz.title} Quiz`;
   }, [quiz]);
 
-  if (error) return <div className="container mx-auto p-4">Quiz not found.</div>;
-  if (!quiz) return <div className="container mx-auto p-4">Loading quiz...</div>;
+  if (error) return <Page>Quiz not found.</Page>;
+  if (!quiz) return <Page>Loading quiz...</Page>;
 
   const backTo = quiz.module ? `/module/${quiz.module}` : `/quizzes`;
   const backLabel = quiz.module ?? "All quizzes";
@@ -58,21 +60,16 @@ export const QuizPage = () => {
   const authors = credits[`${id}.json`] ?? [];
 
   return (
-    <div className="container mx-auto p-4 max-w-3xl">
-      <div className="flex items-center gap-3 mb-6 flex-wrap">
-        <Link
-          to={backTo}
-          className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm font-medium hover:bg-muted transition-colors"
-        >
-          &larr; {backLabel}
-        </Link>
+    <Page>
+      <PageHeader
+        title={quiz.title}
+        subtitle={quiz.module}
+        back={{ to: backTo, label: backLabel }}
+      >
         <InstaCheckToggle />
-      </div>
-
-      <h1 className="text-3xl font-bold mb-1">{quiz.title}</h1>
-      {quiz.module && <p className="text-sm text-muted-foreground">{quiz.module}</p>}
+      </PageHeader>
       {authors.length > 0 && (
-        <p className="text-xs text-muted-foreground italic mt-1">
+        <p className="text-xs text-muted-foreground italic -mt-4">
           Created by{" "}
           {authors.map((authorId, idx) => (
             <span key={authorId}>
@@ -90,6 +87,6 @@ export const QuizPage = () => {
       {quiz.description && <p className="text-muted-foreground mt-2 mb-6">{quiz.description}</p>}
 
       <QuizRunner questions={quiz.questions} instaCheck={instaCheck} />
-    </div>
+    </Page>
   );
 };

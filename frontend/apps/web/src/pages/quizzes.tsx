@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { Page } from "@/components/page";
+import { PageHeader } from "@/components/page-header";
 
 type QuizMeta = {
   id: string;
@@ -31,11 +33,12 @@ export const QuizzesPage = () => {
   const moduleKeys = Object.keys(byModule).sort();
 
   return (
-    <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-4xl font-bold mb-2">Quizzes</h1>
-      <p className="text-muted-foreground mb-8">
-        Practice quizzes across modules. Pick one and test yourself.
-      </p>
+    <Page>
+      <PageHeader
+        title="Quizzes"
+        subtitle="Practice quizzes across modules. Pick one and test yourself."
+        back={{ to: "/", label: "Dashboard" }}
+      />
 
       {loading && <p>Loading...</p>}
 
@@ -51,7 +54,7 @@ export const QuizzesPage = () => {
               <Link
                 key={q.id}
                 to={`/quizzes/${q.id}`}
-                className="block p-4 bg-surface text-surface-foreground border rounded-lg hover:brightness-110 transition"
+                className="block p-4 bg-surface text-surface-foreground border rounded-lg hover:bg-surface-hover transition-colors"
               >
                 <h3 className="font-semibold">{q.title}</h3>
                 {q.description && (
@@ -62,6 +65,6 @@ export const QuizzesPage = () => {
           </div>
         </section>
       ))}
-    </div>
+    </Page>
   );
 };
