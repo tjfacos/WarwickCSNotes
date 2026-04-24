@@ -3,7 +3,7 @@
         {
             "id": "EdDenton",
             "name": "Edward Denton",
-            "role": "Project Lead",
+            "role": "Project Lead (& Co-Founder)",
             "github": "https://github.com/RexMortem",
             "linkedin": "https://www.linkedin.com/in/edward-denton-416a30240/",
             "image": "https://github.com/RexMortem.png"
@@ -11,10 +11,18 @@
         {
             "id": "JakubCza",
             "name": "Jakub Czarlinski",
-            "role": "Technical Lead",
+            "role": "UI Lead (& Co-Founder)",
             "github": "https://github.com/jakubczarlinski",
             "linkedin": "https://www.linkedin.com/in/jakub-czarlinski/",
             "image": "https://github.com/jakubczarlinski.png"
+        },
+        {
+            "id": "Expiracy",
+            "name": "James Gray",
+            "role": "UI & Notes Contributor",
+            "github": "https://github.com/expiracy",
+            "linkedin": "https://www.linkedin.com/in/jameslaigray/",
+            "image": "https://github.com/expiracy.png"
         },
         {
             "id": "TomSweet",
@@ -33,14 +41,6 @@
             "github": "https://github.com/Flynt-251",
             "linkedin": "https://www.linkedin.com/in/finn-m-00b258229/",
             "image": "https://github.com/Flynt-251.png"
-        },
-        {
-            "id": "Expiracy",
-            "name": "James Gray",
-            "role": "Notes Contributor",
-            "github": "https://github.com/expiracy",
-            "linkedin": "https://www.linkedin.com/in/jameslaigray/",
-            "image": "https://github.com/expiracy.png"
         }
     ]
 }
