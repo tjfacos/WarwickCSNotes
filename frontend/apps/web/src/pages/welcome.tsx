@@ -23,7 +23,7 @@ export const Welcome = () => {
             <Link
               key={y}
               to={`/year/${y}`}
-              className="block p-6 bg-surface text-surface-foreground border rounded-lg hover:brightness-110 transition"
+              className="block p-6 bg-surface text-surface-foreground border rounded-lg hover:bg-surface-hover transition-colors"
             >
               <h3 className="text-2xl font-semibold">Year {y}</h3>
             </Link>
@@ -37,7 +37,7 @@ export const Welcome = () => {
             href="https://discord.gg/wdQxub7z9V"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-surface text-surface-foreground border rounded-lg text-lg font-medium hover:brightness-110 transition"
+            className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-surface text-surface-foreground border rounded-lg text-lg font-medium hover:bg-surface-hover transition-colors"
           >
             <MessageSquare className="h-6 w-6" /> Discord
           </a>
@@ -45,7 +45,7 @@ export const Welcome = () => {
             href="https://github.com/WarwickCSNotes/WarwickCSNotes"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-surface text-surface-foreground border rounded-lg text-lg font-medium hover:brightness-110 transition"
+            className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-surface text-surface-foreground border rounded-lg text-lg font-medium hover:bg-surface-hover transition-colors"
           >
             <Github className="h-6 w-6" /> GitHub
           </a>
@@ -53,7 +53,7 @@ export const Welcome = () => {
             href="https://www.linkedin.com/company/warwick-cs-notes"
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-surface text-surface-foreground border rounded-lg text-lg font-medium hover:brightness-110 transition"
+            className="inline-flex items-center justify-center gap-3 px-6 py-3 bg-surface text-surface-foreground border rounded-lg text-lg font-medium hover:bg-surface-hover transition-colors"
           >
             <Linkedin className="h-6 w-6" /> LinkedIn
           </a>

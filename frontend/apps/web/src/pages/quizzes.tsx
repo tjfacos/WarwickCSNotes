@@ -54,7 +54,7 @@ export const QuizzesPage = () => {
               <Link
                 key={q.id}
                 to={`/quizzes/${q.id}`}
-                className="block p-4 bg-surface text-surface-foreground border rounded-lg hover:brightness-110 transition"
+                className="block p-4 bg-surface text-surface-foreground border rounded-lg hover:bg-surface-hover transition-colors"
               >
                 <h3 className="font-semibold">{q.title}</h3>
                 {q.description && (

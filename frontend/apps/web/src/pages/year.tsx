@@ -27,7 +27,7 @@ export const YearPage = () => {
       <PageHeader title={data.title} back={{ to: "/", label: "Dashboard" }} />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Object.entries(data.modules).map(([code, mod]: [string, any]) => (
-          <Link key={code} to={`/module/${code}`} className="block p-4 bg-surface text-surface-foreground border rounded-lg shadow hover:brightness-110 transition">
+          <Link key={code} to={`/module/${code}`} className="block p-4 bg-surface text-surface-foreground border rounded-lg shadow hover:bg-surface-hover transition-colors">
             <h6 className="text-sm font-semibold text-primary">{code}</h6>
             <h5 className="font-bold">{mod.name}</h5>
             <p className="text-sm text-muted-foreground mt-1">{mod.tagline}</p>

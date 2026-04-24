@@ -276,7 +276,7 @@ export const ModulePage = () => {
               <ResourceCard
                 key={quiz.title}
                 to={quiz.url}
-                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:brightness-110 transition cursor-pointer"
+                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:bg-surface-hover transition-colors cursor-pointer"
               >
                 {quiz.title}
                 <Contributors authorIds={getContributors(quizCredits, quiz.url)} />
@@ -303,7 +303,7 @@ export const ModulePage = () => {
                   href={r.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="block p-3 border rounded bg-surface text-surface-foreground text-sm hover:brightness-110 transition"
+                  className="block p-3 border rounded bg-surface text-surface-foreground text-sm hover:bg-surface-hover transition-colors"
                 >
                   {body}
                 </a>
@@ -325,7 +325,7 @@ export const ModulePage = () => {
               <Link
                 key={extra.title}
                 to={extra.url}
-                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:brightness-110 transition"
+                className="relative block p-3 border rounded bg-surface text-surface-foreground text-sm font-medium hover:bg-surface-hover transition-colors"
               >
                 {extra.title}
                 <Badges verified={extra.verified} unfinished={extra.unfinished} />

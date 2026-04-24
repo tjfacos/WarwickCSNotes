@@ -40,7 +40,7 @@ function CareerCard({ link }: { link: CareerLink }) {
       href={link.url}
       target="_blank"
       rel="noreferrer"
-      className="block p-5 bg-surface text-surface-foreground border rounded-lg hover:brightness-110 transition"
+      className="block p-5 bg-surface text-surface-foreground border rounded-lg hover:bg-surface-hover transition-colors"
     >
       <div className="flex items-start justify-between gap-3 mb-2">
         <h3 className="text-lg font-semibold">{link.name}</h3>
