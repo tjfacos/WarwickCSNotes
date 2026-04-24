@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ExternalLink } from "lucide-react";
 import { Page } from "@/components/page";
 import { PageHeader } from "@/components/page-header";
+import { PageSection } from "@/components/page-section";
 
 type CareerLink = {
   name: string;
@@ -61,20 +62,18 @@ export const CareersPage = () => {
         back={{ to: "/", label: "Dashboard" }}
       />
 
-      <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-4">From the Department</h2>
+      <PageSection title="From the Department" className="mb-10">
         <CareerCard link={DCS} />
-      </section>
+      </PageSection>
 
-      <section>
-        <h2 className="text-2xl font-semibold mb-4">Student Societies</h2>
-        <p className="text-sm text-muted-foreground mb-4">
-          Societies run by students. They host CV workshops, industry talks, hackathons, and side-project groups; all great for building experience and networks.
-        </p>
+      <PageSection
+        title="Student Societies"
+        subtitle="Societies run by students. They host CV workshops, industry talks, hackathons, and side-project groups; all great for building experience and networks."
+      >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {SOCIETIES.map(s => <CareerCard key={s.name} link={s} />)}
         </div>
-      </section>
+      </PageSection>
     </Page>
   );
 };
