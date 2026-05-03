@@ -9,6 +9,7 @@ import { AcknowledgementsPage } from "./pages/acknowledgements"
 import { CareersPage } from "./pages/careers"
 import { QuizzesPage } from "./pages/quizzes"
 import { QuizPage } from "./pages/quiz"
+import { ReviewsPage } from "./pages/reviews"
 import { CS133ClassTest } from "./pages/tools/cs133-class-test"
 
 export function App() {
@@ -25,6 +26,7 @@ export function App() {
           <Route path="/careers" element={<CareersPage />} />
           <Route path="/quizzes" element={<QuizzesPage />} />
           <Route path="/quizzes/:id" element={<QuizPage />} />
+          <Route path="/reviews/:code" element={<ReviewsPage />} />
           <Route path="/tools/CS133/class-test" element={<CS133ClassTest />} />
         </Routes>
       </BrowserRouter>

@@ -1,7 +1,11 @@
+version: '3.8'
+
 services:
-  notes:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  csnotes:
+    image: ghcr.io/warwickcsnotes/warwickcsnotes:latest
+    container_name: warwickcsnotes
     ports:
-      - "3000:3000"
+      - "5422:3000"
+    environment:
+      - VIRTUAL_HOST=csnotes
+    restart: unless-stopped

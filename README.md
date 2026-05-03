@@ -14,13 +14,16 @@ This project uses UV for dependency management. Get UV here: https://docs.astral
 
 ## Local Testing w/ Docker
 
-To run:
+To build:
 ```
-docker compose up -d --build
+ docker build -t warwickcsnotes:local .
 ```
 *Note: you should have Docker running while doing this*
 
-The `--build` is for forcing a fresh image to be built.
+To run:
+```
+docker build -t warwickcsnotes:local .
+```
 
 ## Local Testing w/o Docker
 

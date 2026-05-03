@@ -335,6 +335,39 @@ export const ModulePage = () => {
           </div>
         </div>
       )}
+
+      <div className="mt-4 border p-4 rounded">
+        <div className="flex items-baseline justify-between gap-3 flex-wrap mb-2">
+          <h5 className="font-bold">Reviews</h5>
+          {mod.review_summary?.count > 0 ? (
+            <Link
+              to={`/reviews/${mod.code}`}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              See all {mod.review_summary.count} review{mod.review_summary.count === 1 ? "" : "s"} &rarr;
+            </Link>
+          ) : (
+            <span className="text-sm text-muted-foreground">0 reviews</span>
+          )}
+        </div>
+        {mod.review_summary?.count > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(mod.review_summary.average as Record<string, number>).map(([key, val]) => (
+              <span
+                key={key}
+                className="text-xs px-2 py-1 border rounded bg-surface text-surface-foreground"
+              >
+                Avg {key.charAt(0).toUpperCase() + key.slice(1)}:{" "}
+                <span className="font-semibold">{val}</span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">
+            No reviews for this module yet.
+          </p>
+        )}
+      </div>
     </Page>
   );
 };

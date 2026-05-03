@@ -1,0 +1,15 @@
+[
+    {
+        "Author": "Sample User",
+        "AcademicYear": "2023",
+        "Reflection": [
+            ["Teaching Quality", "Teaching was good!"],
+            ["Content and Difficulty", "I liked the content, very abstract but rewarding once it clicks."],
+            ["Why did I pick it?", "I like maths."]
+        ],
+        "Ratings": {
+            "overall": 78,
+            "difficulty": 52
+        }
+    }
+]

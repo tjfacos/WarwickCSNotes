@@ -12,6 +12,8 @@ YEAR_DATA_DIR = os.path.join(DATA_DIR, "YearData")
 QUIZ_DIR = os.path.join(DATA_DIR, "Quizzes")
 CREDITS_DIR = os.path.join(DATA_DIR, "Credits")
 CREDITS_FILE = os.path.join(CREDITS_DIR, "people.json")
+REVIEWS_DIR = os.path.join(DATA_DIR, "Reviews")
+REVIEWS_PER_PAGE = 10
 
 # Resources are shared content files (notes, solutions, ...) stored under
 # Data/Resources/<Category>/. All resource files obey the same rules:
@@ -55,6 +57,52 @@ def serve_content(directory, filename):
     )
 
 
+def _review_summary(reviews):
+    """Average each numeric rating across all reviews; report total count."""
+    if not reviews:
+        return {"count": 0, "average": {}}
+    sums, counts = {}, {}
+    for r in reviews:
+        for key, val in (r.get("Ratings") or {}).items():
+            if isinstance(val, (int, float)):
+                sums[key] = sums.get(key, 0) + val
+                counts[key] = counts.get(key, 0) + 1
+    averages = {k: round(sums[k] / counts[k], 1) for k in sums}
+    return {"count": len(reviews), "average": averages}
+
+
+def _load_reviews(module_code):
+    """Read raw reviews list for a module (case-insensitive). Returns []
+    if no review file exists or the file is malformed."""
+    path = os.path.join(REVIEWS_DIR, f"{module_code.lower()}.json")
+    if not os.path.exists(path):
+        return []
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return []
+    return data if isinstance(data, list) else []
+
+
+def _compute_all_review_summaries():
+    """Pre-compute average ratings and counts per module at startup, so the
+    module page can show review metrics without re-reading every review file
+    on each request."""
+    summaries = {}
+    if not os.path.isdir(REVIEWS_DIR):
+        return summaries
+    for fname in os.listdir(REVIEWS_DIR):
+        if not fname.endswith(".json") or fname.startswith("_"):
+            continue
+        module = fname[:-5].upper()
+        summaries[module] = _review_summary(_load_reviews(module))
+    return summaries
+
+
+REVIEW_SUMMARIES = _compute_all_review_summaries()
+
+
 @app.route("/api/year/<int:year_num>")
 def api_year(year_num):
     if year_num not in (1, 2, 3, 4):
@@ -70,8 +118,41 @@ def api_module(code):
             year_data = json.load(f)
         for mod_code, mod in year_data["modules"].items():
             if mod_code.upper() == code.upper():
-                return {**mod, "code": mod_code, "year": year_num}
+                review_summary = REVIEW_SUMMARIES.get(
+                    mod_code.upper(), {"count": 0, "average": {}}
+                )
+                return {
+                    **mod,
+                    "code": mod_code,
+                    "year": year_num,
+                    "review_summary": review_summary,
+                }
     abort(404)
+
+
+@app.route("/api/reviews/<module>")
+def api_reviews(module):
+    """Paginated reviews for a module. Page size is fixed at REVIEWS_PER_PAGE.
+    Always includes the summary so the reviews page can show the headline
+    metrics without a second round-trip."""
+    try:
+        page = max(1, int(request.args.get("page", 1)))
+    except ValueError:
+        page = 1
+    reviews = _load_reviews(module)
+    total = len(reviews)
+    start = (page - 1) * REVIEWS_PER_PAGE
+    end = start + REVIEWS_PER_PAGE
+    return {
+        "module": module.upper(),
+        "page": page,
+        "perPage": REVIEWS_PER_PAGE,
+        "total": total,
+        "reviews": reviews[start:end],
+        "summary": REVIEW_SUMMARIES.get(
+            module.upper(), {"count": 0, "average": {}}
+        ),
+    }
 
 
 @app.route("/api/credits")
