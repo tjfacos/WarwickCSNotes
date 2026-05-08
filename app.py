@@ -253,7 +253,6 @@ def _resolve_llm_provider():
                 return "claude", _call_claude, key
     return None
 
-
 @app.route("/api/reviews/<module>/ai-summary")
 def api_reviews_ai_summary(module):
     """AI-generated 2-3 sentence summary of a module's reviews. Returns 503 if

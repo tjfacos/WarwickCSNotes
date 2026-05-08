@@ -26,6 +26,23 @@ To run:
 docker run --rm -p 3000:3000 --env-file .env warwickcsnotes:local
 ```
 
+### Local Testing w/ Docker Compose (file-watch hot reload)
+
+If you'd rather have edits to `app.py` or `Data/` synced into a running container automatically (and the image rebuilt when `frontend/`, `pyproject.toml`, `uv.lock`, or `Dockerfile` changes), use the dev compose file. It binds host port `3000:3000` and reads from `.env`, exactly like the plain `docker run` above, plus adds a `develop.watch` config so changes propagate without a manual rebuild.
+
+To start (this builds on first run, then watches):
+```
+docker compose -f docker-compose.dev.yml watch
+```
+Visit http://localhost:3000.
+
+To stop, hit `Ctrl+C` in the watch terminal. To clean up the container/network:
+```
+docker compose -f docker-compose.dev.yml down
+```
+
+`docker-compose.yml` (the production compose) stays untouched, so deploys are unaffected.
+
 ## Local Testing w/o Docker
 
 You'll need two terminals: one for the Flask backend and one for the Vite dev server. The Vite dev server proxies `/api` and `/notes` requests to Flask, so both must be running.
