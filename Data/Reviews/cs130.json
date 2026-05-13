@@ -11,5 +11,22 @@
             "overall": 90,
             "difficulty": 75
         }
+    },
+    {
+        "Author": "Abby",
+        "AcademicYear": "2026",
+        "Reflection": [
+            ["Workload & Structure", "This module sneaks up on you throughout Term 1, because you have to do the problem sets, and they take a while, but they never feel like a priority because they're worth so few marks. As a result, the workload spikes about once a week but never feels consistent. If you don't do the seminar sheets (which a lot of people don't) you get rid of some of those spikes, but given this is one of the most difficult first-year modules, you'll thank yourself later for doing the work early.\n\nWork unsurprisingly peaks near the end of the winter and spring holidays, right before the class test and exam respectively. It's also worth noting that (unsurprisingly) the module gets significantly harder throughout the term."],
+            ["Assessment", "The problem sets are pretty chill for the most part, as they're marked solely on participation. In our year, the class test was absolute hell, with an average mark of 35%. Thankfully, the exam was a lot nicer, as it was very similar to last year's. However, it's still a tough exam, and I wouldn't expect the questions to be as similar in future years. It's worth mentioning that the exam is 40% multiple choice, so it's not too hard to pass, but the remaining questions are a lot harder, so doing any better than that is a challenge."],
+            ["Teaching Quality", "Thankfully, this is currently a very well-taught module - Ranko is a fantastic, quirky lecturer and made the topics very interesting. Both the exercise sheets and problem sets are of very high quality, and there are great notes available for the full module on the Moodle page. Unfortunately, the teaching from seminar tutors is often pretty hit or miss. If you're struggling, you may be better off going to office hours."],
+            ["Content & Difficulty", "This module is a broad overview of the field of discrete mathematics, starting with logic and basic set theory (which are fairly easy), moving onto relations and functions (which are significantly harder), and ending with graphs (a bit of a content dump, but mostly fine). Most of the module centres around writing good proofs using these concepts. You don't need any prior knowledge, but it's worth being aware that this will be very different to the kind of maths you'll have been taught at A-Level!"],
+            ["Enjoyment", "Personally, I enjoyed this module a lot. It's definitely one of the harder modules of the year, but it's a lot of fun and I found it far more interesting than I expected."],
+            ["Who Should Take It", "If you have an interest in discrete maths or theoretical CS as a whole, and are willing to put time into it, this is a module worth taking."],
+            ["Tips", "Do the seminar sheets! You'll be at a huge advantage for the exam if you've learned the content in more depth."]
+        ],
+        "Ratings": {
+            "overall": 70,
+            "difficulty": 70
+        }
     }
 ]

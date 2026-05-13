@@ -201,12 +201,21 @@ def _call_claude(prompt, api_key, *, max_tokens=400, timeout=30):
     return "".join(b.get("text", "") for b in blocks if b.get("type") == "text").strip()
 
 
-def _call_gemini(prompt, api_key, *, max_tokens=400, timeout=30):
-    """POST a single prompt to Google's Gemini API and return the text reply."""
+def _call_gemini(prompt, api_key, *, max_tokens=800, timeout=30):
+    """POST a single prompt to Google's Gemini API and return the text reply.
+
+    Gemini 2.5 models have thinking enabled by default, and those thinking
+    tokens are subtracted from `maxOutputTokens` *before* the visible reply,
+    so a short max_tokens silently truncates the summary mid-sentence. We
+    disable thinking here (`thinkingBudget: 0`) since a 2-3 sentence summary
+    doesn't need internal reasoning, and keep a comfortable token budget."""
     url = GEMINI_API_URL_TEMPLATE.format(model=GEMINI_MODEL, key=api_key)
     body = json.dumps({
         "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": max_tokens},
+        "generationConfig": {
+            "maxOutputTokens": max_tokens,
+            "thinkingConfig": {"thinkingBudget": 0},
+        },
     }).encode("utf-8")
     req = urllib.request.Request(
         url,

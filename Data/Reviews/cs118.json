@@ -1,0 +1,18 @@
+[
+    {
+        "Author": "Abby",
+        "AcademicYear": "2026",
+        "Reflection": [
+            ["Workload & Structure", "The coursework workload is generally fairly manageable as long as you organise your time well. I recommend getting started on the courseworks early (particularly the second one), as otherwise things will get intense near the end of term. Most people will be pulling all-nighters to get it submitted in week 10, so you'll feel fantastic if you've got it done earlier!\n\nExam workload isn't too heavy, as the CS126 coursework that you'll be doing over the prior holiday is solid Java revision on its own. Just make sure you do all three available past papers to get an idea of the structure, and to get used to programming on paper."],
+            ["Assessment", "The assessments are easier than most of the other first year modules. Coursework-wise, the learning curve isn't too steep, but the second one is significantly harder than the first. We got our marks back quickly, and the feedback was solid. Your main difficulty in the exam is likely to be getting through it in 2 hours - being able to write quickly is a huge advantage. Get a good pen!"],
+            ["Teaching Quality", "In general, both the lectures and resources are fantastic. James is incredibly engaging and makes 9am lectures worth attending. Both courseworks are very well-designed and are a great practical way of learning programming - plus, if you do end up needing more resources, there's an abundance of good online material. Feedback is incredibly accessible too, probably more so than any other DCS year 1 module. You will not be struggling for lack of support."],
+            ["Content & Difficulty", "This module is effectively a comprehensive overview of both procedural and object-oriented programming, with a few advanced techniques (such as generics, threading and reflection) briefly discussed near the end. It's taught in Java, which I personally am not a fan of, but if you're coming from a language like Python you won't notice too much of a difference.\n\nDifficulty-wise, this module is incredibly dependent on how good you are at programming going in. If you're already a strong object-oriented programmer, you won't find it very difficult, but if you aren't it will likely be quite overwhelming. Thankfully there's a lot of great support available.\n\nA key thing worth noting is that around weeks 4-5, the module switches from procedural to object-oriented techniques - if you only have experience with procedural programming, this is the time to start showing up to lectures again!\n\nDifficulty rating provided is given I had prior programming experience."],
+            ["Enjoyment", "CS118 was probably my favourite term 1 module, and I had a great time with it. If you're doing a degree that requires it, you'll probably enjoy it too."],
+            ["Tips", "Manage your time well, make use of the support available to you, and don't rely on AI for the coursework, because you won't have it with you in the exam!"]
+        ],
+        "Ratings": {
+            "overall": 80,
+            "difficulty": 30
+        }
+    }
+]
