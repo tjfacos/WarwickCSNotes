@@ -192,7 +192,8 @@
             "CATS":"15",
             "authors": ["Thomas Facos"],
             "notes": [
-                {"title": "Introduction to Haskell", "url": "/resources/Notes/CS141/IntroToHaskell"}
+                {"title": "Introduction to Haskell", "url": "/resources/Notes/CS141/IntroToHaskell"},
+                {"title": "Basics of Haskell", "url": "/resources/Notes/CS141/BasicHaskell"}
             ],
             "past_papers": [
                 {"title": "2025 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2025/cs1410_exam_paper.pdf"},
