@@ -190,7 +190,10 @@
             "name": "Functional Programming",
             "Term":"2",
             "CATS":"15",
-            "authors": [],
+            "authors": ["Thomas Facos"],
+            "notes": [
+                {"title": "Introduction to Haskell", "url": "/resources/Notes/CS141/IntroToHaskell"}
+            ],
             "past_papers": [
                 {"title": "2025 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2025/cs1410_exam_paper.pdf"},
                 {"title": "2024 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2024/cs1410_exam_paper.pdf"},
@@ -206,7 +209,11 @@
                 {"title": "Coursework 2", "submission_deadline": "2026-04-07 12:00 PM", "weighting": 25, "eligible_for_self_certification": false},
                 {"title": "Centrally-timetabled examination (On-campus)", "submission_deadline": "2026-06-16 9:30 AM", "weighting": 60, "eligible_for_self_certification": false}
             ],
-            "exercise_solutions": []
+            "exercise_solutions": [],
+            "external_resources": [
+                {"name": "Learn You a Haskell for Great Good!", "url":"https://learnyouahaskell.github.io/chapters.html", "description": "The primary text for the module, accessible freely online. A very accessible beginner's guide to Haskell"},
+                {"name": "Yijun's Notes", "url":"https://yijun.hu/blog-cs/cs141/", "description": "Only covers more difficult content, later in the module."}
+            ]
         },
         "CS143": {
             "tagline": "Rip off CS259",
