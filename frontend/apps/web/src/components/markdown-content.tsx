@@ -20,6 +20,54 @@ import {
   ChevronDown,
 } from "lucide-react";
 
+/** Reserved keywords in Haskell 2010 (plus the wildcard `_`). */
+const HASKELL_KEYWORDS = new Set([
+  "case", "class", "data", "default", "deriving", "do", "else",
+  "foreign", "if", "import", "in", "infix", "infixl", "infixr",
+  "instance", "let", "module", "newtype", "of", "then", "type", "where",
+  "_",
+]);
+
+/** Lightweight, regex-based Haskell syntax highlighter. Wraps each token in
+ *  a span with a colour class. Designed to be self-contained (no external
+ *  highlighting library) and to handle the constructs we use in CS141 code
+ *  blocks: comments, strings, char literals, type names, keywords, numbers,
+ *  identifiers and the usual symbolic operators. */
+function highlightHaskell(code: string) {
+  // One regex with alternation, longest-first so e.g. `::` beats `:`.
+  const tokenRe = /(\{-[\s\S]*?-\}|--[^\n]*|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])'|[A-Z][\w']*|[a-z_][\w']*|\d+(?:\.\d+)?|::|->|=>|<-|\|\||&&|[!@#$%^&*+=|<>?/\\.~,;:()\[\]{}-]|\s+)/g;
+  const tokens: { value: string; cls: string }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = tokenRe.exec(code)) !== null) {
+    const t = m[0];
+    let cls = "";
+    if (t.startsWith("{-") || t.startsWith("--")) {
+      cls = "italic text-muted-foreground";
+    } else if (t.startsWith('"') || t.startsWith("'")) {
+      cls = "text-emerald-600 dark:text-emerald-400";
+    } else if (/^[A-Z]/.test(t)) {
+      cls = "text-blue-600 dark:text-blue-400";
+    } else if (HASKELL_KEYWORDS.has(t)) {
+      cls = "text-purple-600 dark:text-purple-400 font-semibold";
+    } else if (/^\d/.test(t)) {
+      cls = "text-orange-600 dark:text-orange-400";
+    } else if (/^[a-z_]/.test(t)) {
+      cls = "";
+    } else if (/^\s+$/.test(t)) {
+      cls = "";
+    } else {
+      // Symbolic operator (`::`, `->`, `=>`, `=`, ...).
+      cls = "text-pink-600 dark:text-pink-400";
+    }
+    tokens.push({ value: t, cls });
+  }
+  return tokens.map((tok, i) =>
+    tok.cls
+      ? <span key={i} className={tok.cls}>{tok.value}</span>
+      : <span key={i}>{tok.value}</span>
+  );
+}
+
 function latexToMarkdown(tex: string): string {
   let md = tex;
   md = md.replace(/\\documentclass(\[.*?\])?\{.*?\}/g, '');
@@ -272,9 +320,17 @@ export function MarkdownContent({ content, extension }: { content: string; exten
             }
             return <blockquote className="border-l-4 border-muted pl-4 italic my-4 text-muted-foreground">{children}</blockquote>;
           },
-          code: ({ children, className }) => className
-            ? <code className={`${className} block bg-muted rounded p-4 my-4 overflow-x-auto text-sm`}>{children}</code>
-            : <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono">{children}</code>,
+          code: ({ children, className }) => {
+            if (!className) {
+              return <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono">{children}</code>;
+            }
+            const isHaskell = className === "language-hs" || className === "language-haskell";
+            return (
+              <code className={`${className} block bg-muted rounded p-4 my-4 overflow-x-auto text-sm whitespace-pre`}>
+                {isHaskell ? highlightHaskell(String(children)) : children}
+              </code>
+            );
+          },
           hr: () => <hr className="my-6 border-border" />,
           // Tables: use border-primary so grid lines pick up each theme's accent
           // (purple for cs141, red for dragon, near-black for light, etc.).

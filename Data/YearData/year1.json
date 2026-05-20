@@ -191,6 +191,9 @@
             "Term":"2",
             "CATS":"15",
             "authors": [],
+            "notes": [
+                {"title": "Syntax Highlighting Demo", "url": "/resources/Notes/CS141/SyntaxHighlightingDemo"}
+            ],
             "past_papers": [
                 {"title": "2025 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2025/cs1410_exam_paper.pdf"},
                 {"title": "2024 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2024/cs1410_exam_paper.pdf"},
