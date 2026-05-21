@@ -68,8 +68,14 @@ For any algorithm $\text{ALG}$ on a **maximisation** problem $P$, with $I^*$ the
 
 $\alpha_{\text{ALG}} \;=\; \min_{I \in I^*} \frac{\text{obj}(\text{ALG}(I))}{\text{obj}(\text{OPT}(I))} \;\;(\leq 1).$
 
+We know $0 \leq \alpha_{\text{ALG}} \leq 1$, and we want an algorithm's ratio to be as big as possible - to be closer to $1$. 
+
 For a **minimisation** problem (where smaller objectives are better, e.g. shortest-path length, total cost) the inequality flips: $\text{ALG}$ can only ever be at least as large as $\text{OPT}$, so the ratio is $\geq 1$ and the worst case is now the **largest** value:
 
 $\alpha_{\text{ALG}} \;=\; \max_{I \in I^*} \frac{\text{obj}(\text{ALG}(I))}{\text{obj}(\text{OPT}(I))} \;\;(\geq 1).$
 
-In both cases, the approximation ratio is a guarantee: $\text{ALG}$'s objective is *always* within a factor of $\alpha_{\text{ALG}}$ of the optimal, no matter which instance it's run on.
+We know $1 \leq \alpha_{\text{ALG}}$, and we want an algorithm's ratio to be as small as possible - to be closer to $1$. 
+
+In both cases, the approximation ratio is a guarantee: $\text{ALG}$'s objective is *always* within a factor of $\alpha_{\text{ALG}}$ of the optimal, no matter which instance it's run on. 
+
+For both, you also want to be as close to $1$ as possible. 

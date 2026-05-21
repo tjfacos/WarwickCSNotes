@@ -31,5 +31,6 @@
     "LossFunctions.md": ["EdDenton"],
     "NaturalLanguageProcessing.md": ["EdDenton"],
     "GenerativeAdversarialNetworks.md": ["EdDenton"],
-    "ApproximationRatio.md": ["EdDenton"]
+    "ApproximationRatio.md": ["EdDenton"],
+    "SyntaxHighlightingDemo.md": ["EdDenton"]
 }
