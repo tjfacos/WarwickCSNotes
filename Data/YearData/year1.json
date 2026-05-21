@@ -196,8 +196,9 @@
                 {"title": "Basics of Haskell", "url": "/resources/Notes/CS141/HaskellBasics"},
                 {"title": "Type Classes", "url": "/resources/Notes/CS141/HaskellTypeClasses"},
                 {"title": "Evaluation", "url": "/resources/Notes/CS141/HaskellEvaluation"},
-                {"title": "Custom Data Structures", "url": "/resources/Notes/CS141/DataStructures"},
-                {"title": "Kinds", "url": "/resources/Notes/CS141/HaskellKinds"},
+                {"title": "Custom Data Structures", "url": "/resources/Notes/CS141/HaskellDataStructures"},
+                {"title": "Folding", "url": "/resources/Notes/CS141/HaskellFolding"},
+                {"title": "Kinds and Subtypes", "url": "/resources/Notes/CS141/HaskellKindsSubtypes"},
                 {"title": "Semigroups and Monoids", "url": "/resources/Notes/CS141/HaskellSemigroupsMonoids"},
                 {"title": "Functors, Applicatives, and Monads", "url": "/resources/Notes/CS141/HaskellFunctorsApplicativesMonads"},
                 {"title": "Parsing", "url": "/resources/Notes/CS141/HaskellParsing"}
