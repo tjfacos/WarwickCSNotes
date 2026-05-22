@@ -1,2 +1,2 @@
 # Evaluation
-> This note covers lecture 8
+> This note covers lecture 8 (2026)

@@ -1,2 +1,2 @@
 # Kinds
-> This note covers lecture 16
+> This note covers lecture 16 (2026)
