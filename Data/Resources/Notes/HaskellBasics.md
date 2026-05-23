@@ -176,6 +176,7 @@ id x = x
 ignoreSecondArgument :: a -> b -> a
 ignoreSecondArgument = \x -> \y -> x
 ```
+This pattern is known as **parametric polymorphism** (we will see further types of polymorphism in later notes).
 
 ---
 
