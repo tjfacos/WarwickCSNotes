@@ -227,7 +227,7 @@
                 {"title": "Centrally-timetabled examination (On-campus)", "submission_deadline": "2026-06-04 2:00 PM", "weighting": 80, "eligible_for_self_certification": false}
             ],
             "exercise_solutions": [
-                {"title": "Seminar Exercise 1", "url": "/resources/Solutions/CS143/SeminarExercise1"}
+                {"title": "Seminar Exercise 1", "url": "#", "solution": {"url": "/resources/Solutions/CS143/SeminarExercise1"}}
             ]
         },
         "CS146": {
