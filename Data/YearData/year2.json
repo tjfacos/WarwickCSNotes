@@ -122,7 +122,9 @@
                 {"title": "Coursework", "submission_deadline": "2026-04-30 12:00 PM", "weighting": 20, "eligible_for_self_certification": false},
                 {"title": "Centrally-timetabled examination (On-campus)", "submission_deadline": "2026-06-15 9:30 AM", "weighting": 80, "eligible_for_self_certification": false}
             ],
-            "exercise_solutions": []
+            "exercise_solutions": [
+                {"title": "Seminar Exercise 1", "url": "/resources/Solutions/CS259/SeminarExercise1"}
+            ]
         },
         "CS260": {
             "tagline": "Algorithm paradigms and also complexity classes",

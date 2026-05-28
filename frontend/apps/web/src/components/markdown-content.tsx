@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Children, isValidElement, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
@@ -242,6 +242,130 @@ function remarkObsidianCallouts() {
   };
 }
 
+// TikZ via tikzjax: the CDN script (loaded in index.html) scans the page for
+// <script type="text/tikz"> elements once and replaces each with an inline
+// SVG. Two awkward facts:
+//   1. The CDN bundle hooks `window.onload`, so it only runs that scan a
+//      single time. There is no MutationObserver, and the scanner is not
+//      exposed on a global - so scripts injected later (e.g. when a user
+//      navigates between SPA pages) would never be processed.
+//   2. The handler is async and we don't know exactly when it has finished
+//      its first scan; if our component mounts before tikzjax has loaded,
+//      `window.onload` is still whatever it was before.
+// We work around both by polling for tikzjax's handler to appear on
+// `window.onload` and then invoking it ourselves after we inject a script.
+//
+// The bundled `automata` library inside tikzjax is broken: it loads
+// `tikzlibraryautomata.code.tex` but the `/tikz/state` key never gets
+// registered ("Package pgfkeys Error: I do not know the key '/tikz/state'").
+// Rather than depend on it we re-define the canonical automata styles
+// (`state`, `accepting`, `initial`, plus the `initial text` / `initial
+// distance` keys and the `every state` hook) using basic TikZ + positioning
+// + arrows primitives. On top of that we apply the standard module-wide
+// formatting (shaded states, stealth arrowheads, etc.) so any TikZ block
+// dropped into a note renders consistently with the rest of the site.
+const TIKZ_PREAMBLE = String.raw`
+\usetikzlibrary{arrows,positioning}
+\tikzset{
+  node distance=2.5cm,
+  every state/.style={},
+  state/.style={
+    circle, draw, minimum size=2em, inner sep=2pt, font=\small,
+    every state/.try
+  },
+  accepting/.style={double, double distance=2pt, outer sep=1pt},
+  initial text/.initial={},
+  initial distance/.initial=0.7cm,
+  initial/.style={
+    append after command={%
+      [draw, ->, semithick]
+      ([shift={(-\pgfkeysvalueof{/tikz/initial distance},0)}]\tikzlastnode.west)
+      edge node[at start, anchor=east, font=\footnotesize]
+        {\pgfkeysvalueof{/tikz/initial text}}
+      (\tikzlastnode.west)
+    }
+  }
+}
+\tikzset{
+  every state/.append style={
+    semithick,
+    fill=gray!10
+  },
+  initial/.append style={
+    initial text={},
+    initial distance=0.5cm
+  },
+  accepting/.append style={
+    double=gray!10,
+    double distance=2pt,
+    outer sep=1pt
+  },
+  every edge/.append style={
+    draw, ->, >=stealth', auto, semithick
+  }
+}
+\let\epsilon\varepsilon
+\let\sym\texttt
+`;
+
+function runTikzjax(retries = 40) {
+  if (typeof window === "undefined") return;
+  const fn = window.onload as ((ev: Event) => unknown) | null;
+  if (typeof fn === "function") {
+    try {
+      fn.call(window, new Event("load"));
+    } catch {
+      // tikzjax may throw if the same script has already been processed,
+      // which is fine: the SVG is already in place.
+    }
+    return;
+  }
+  if (retries > 0) {
+    window.setTimeout(() => runTikzjax(retries - 1), 200);
+  }
+}
+
+// tikzjax fails silently on stray whitespace and non-breaking spaces in the
+// source (e.g. pasted content). Following the obsidian-tikzjax convention,
+// trim every line, drop empty ones, and strip `&nbsp;`.
+function tidyTikzSource(source: string): string {
+  return source
+    .replace(/&nbsp;/g, "")
+    .split("\n")
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+    .join("\n");
+}
+
+function TikzBlock({ code }: { code: string }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const host = containerRef.current;
+    if (!host) return;
+    host.innerHTML = "";
+    const script = document.createElement("script");
+    script.type = "text/tikz";
+    script.setAttribute("data-show-console", "true");
+    script.textContent = TIKZ_PREAMBLE + tidyTikzSource(code);
+    host.appendChild(script);
+    runTikzjax();
+  }, [code]);
+  return (
+    <div
+      ref={containerRef}
+      className="not-prose my-4 flex justify-center overflow-x-auto"
+    />
+  );
+}
+
+// react-markdown wraps fenced code blocks in `<pre><code class="language-...">`.
+// We detect tikz in the `code` renderer (where the class is in hand) and in
+// the `pre` renderer we unwrap when the rendered child IS a TikzBlock so we
+// don't end up with <pre><div>...</div></pre>.
+function isTikzChild(child: unknown): boolean {
+  return isValidElement(child) && child.type === TikzBlock;
+}
+
 function Callout({ type, title, fold, children }: { type: string; title: string; fold: string; children: React.ReactNode }) {
   const style = CALLOUT_TYPES[type] ?? CALLOUT_TYPES.note;
   const Icon = style.icon;
@@ -281,9 +405,14 @@ function Callout({ type, title, fold, children }: { type: string; title: string;
         </span>
         {collapsible && <ChevronDown className={`h-4 w-4 transition-transform ${open ? '' : '-rotate-90'}`} />}
       </div>
-      {(!collapsible || open) && (
-        <div className="mt-2 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">{children}</div>
-      )}
+      {/* Always render children so that things like TikZ scripts inside a
+          collapsed callout still mount and get processed on page load. We
+          just hide them visually when the callout is closed. */}
+      <div
+        className={`mt-2 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${collapsible && !open ? "hidden" : ""}`}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -320,7 +449,15 @@ export function MarkdownContent({ content, extension }: { content: string; exten
             }
             return <blockquote className="border-l-4 border-muted pl-4 italic my-4 text-muted-foreground">{children}</blockquote>;
           },
+          pre: ({ children, ...props }) => {
+            const arr = Children.toArray(children);
+            if (arr.length === 1 && isTikzChild(arr[0])) return <>{arr[0]}</>;
+            return <pre {...props}>{children}</pre>;
+          },
           code: ({ children, className }) => {
+            if (className === "language-tikz") {
+              return <TikzBlock code={String(children).replace(/\n$/, "")} />;
+            }
             if (!className) {
               return <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono">{children}</code>;
             }

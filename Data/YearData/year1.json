@@ -226,7 +226,9 @@
                 {"title": "Programming Assignment", "submission_deadline": "2026-04-13 12:00 PM", "weighting": 20, "eligible_for_self_certification": true},
                 {"title": "Centrally-timetabled examination (On-campus)", "submission_deadline": "2026-06-04 2:00 PM", "weighting": 80, "eligible_for_self_certification": false}
             ],
-            "exercise_solutions": []
+            "exercise_solutions": [
+                {"title": "Seminar Exercise 1", "url": "/resources/Solutions/CS143/SeminarExercise1"}
+            ]
         },
         "CS146": {
             "tagline": "Rabbits.",
