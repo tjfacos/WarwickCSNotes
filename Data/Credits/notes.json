@@ -32,5 +32,7 @@
     "NaturalLanguageProcessing.md": ["EdDenton"],
     "GenerativeAdversarialNetworks.md": ["EdDenton"],
     "ApproximationRatio.md": ["EdDenton"],
-    "SyntaxHighlightingDemo.md": ["EdDenton"]
+    "SyntaxHighlightingDemo.md": ["EdDenton"],
+    "MobileRoboticsOverview.md": ["EdDenton"],
+    "Sensors.md": ["EdDenton"]
 }

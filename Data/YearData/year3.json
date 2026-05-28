@@ -19,6 +19,23 @@
             ],
             "exercise_solutions": []
         },
+        "CS313": {
+            "tagline": "No real robots :(",
+            "name": "Mobile Robotics",
+            "description": "Warning: there are no physical robots, and nothing about the actual locomotion of robots. There is a simulation of a robot with sensing strategies and planning a path for the robot, but nothing about how the kinematics of how robots move in the real world.",
+            "Term":"2",
+            "CATS":"15",
+            "authors": [],
+            "notes": [
+                {"title": "Overview", "url": "/resources/Notes/CS313/MobileRoboticsOverview"},
+                {"title": "Sensors", "url": "/resources/Notes/CS313/Sensors"}
+            ],
+            "past_papers": [],
+            "exercise_solutions": [],
+            "quizzes": [
+                {"title": "Sensors", "url": "/quizzes/cs313-sensors"}
+            ]
+        },
         "CS325": {
             "tagline": "Build a thing",
             "name": "Compiler Design",
