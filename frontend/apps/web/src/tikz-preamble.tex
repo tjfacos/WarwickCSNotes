@@ -1,0 +1,41 @@
+\usetikzlibrary{arrows,positioning}
+\tikzset{
+  node distance=2.5cm,
+  every state/.style={},
+  state/.style={
+    circle, draw, minimum size=2em, inner sep=2pt, font=\small,
+    every state/.try
+  },
+  accepting/.style={double, double distance=2pt, outer sep=1pt},
+  initial text/.initial={},
+  initial distance/.initial=0.7cm,
+  initial/.style={
+    append after command={%
+      [draw, ->, semithick]
+      ([shift={(-\pgfkeysvalueof{/tikz/initial distance},0)}]\tikzlastnode.west)
+      edge node[at start, anchor=east, font=\footnotesize]
+        {\pgfkeysvalueof{/tikz/initial text}}
+      (\tikzlastnode.west)
+    }
+  }
+}
+\tikzset{
+  every state/.append style={
+    semithick,
+    fill=gray!10
+  },
+  initial/.append style={
+    initial text={},
+    initial distance=0.5cm
+  },
+  accepting/.append style={
+    double=gray!10,
+    double distance=2pt,
+    outer sep=1pt
+  },
+  every edge/.append style={
+    draw, ->, >=stealth', auto, semithick
+  }
+}
+\let\epsilon\varepsilon
+\let\sym\texttt

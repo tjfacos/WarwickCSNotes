@@ -454,6 +454,23 @@ def resource(category, module_code, filename):
     return serve_content(directory, mapped)
 
 
+@app.route("/Resources/Images/tikz/<filename>")
+def tikz_image(filename):
+    """Serve a pre-rendered TikZ SVG with an immutable cache header.
+
+    Filenames are SHA-256 content addresses (see scripts/render-tikz.mjs), so
+    the bytes for a given URL never change — `immutable` lets the browser
+    skip revalidation forever."""
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        abort(404)
+    directory = os.path.join(DIST_DIR, "Resources", "Images", "tikz")
+    if not os.path.isfile(os.path.join(directory, filename)):
+        abort(404)
+    response = send_from_directory(directory, filename)
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
+
 @app.route("/")
 @app.route("/<path:path>")
 def serve(path=""):

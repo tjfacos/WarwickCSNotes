@@ -1,5 +1,6 @@
 import { Children, isValidElement, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import tikzPreambleRaw from "../tikz-preamble.tex?raw";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -242,71 +243,31 @@ function remarkObsidianCallouts() {
   };
 }
 
-// TikZ via tikzjax: the CDN script (loaded in index.html) scans the page for
-// <script type="text/tikz"> elements once and replaces each with an inline
-// SVG. Two awkward facts:
-//   1. The CDN bundle hooks `window.onload`, so it only runs that scan a
-//      single time. There is no MutationObserver, and the scanner is not
-//      exposed on a global - so scripts injected later (e.g. when a user
-//      navigates between SPA pages) would never be processed.
-//   2. The handler is async and we don't know exactly when it has finished
-//      its first scan; if our component mounts before tikzjax has loaded,
-//      `window.onload` is still whatever it was before.
-// We work around both by polling for tikzjax's handler to appear on
-// `window.onload` and then invoking it ourselves after we inject a script.
+// TikZ rendering. Production strategy: every ```tikz``` block in the repo is
+// pre-rendered to a static SVG at build time (see scripts/render-tikz.mjs)
+// and served as `/Resources/Images/tikz/<hash>.svg`. <hash> is
+// sha256(preamble + tidied source) truncated to 16 hex chars, computed both
+// here and in the render script so the URLs line up.
 //
-// The bundled `automata` library inside tikzjax is broken: it loads
-// `tikzlibraryautomata.code.tex` but the `/tikz/state` key never gets
-// registered ("Package pgfkeys Error: I do not know the key '/tikz/state'").
-// Rather than depend on it we re-define the canonical automata styles
-// (`state`, `accepting`, `initial`, plus the `initial text` / `initial
-// distance` keys and the `every state` hook) using basic TikZ + positioning
-// + arrows primitives. On top of that we apply the standard module-wide
-// formatting (shaded states, stealth arrowheads, etc.) so any TikZ block
-// dropped into a note renders consistently with the rest of the site.
-const TIKZ_PREAMBLE = String.raw`
-\usetikzlibrary{arrows,positioning}
-\tikzset{
-  node distance=2.5cm,
-  every state/.style={},
-  state/.style={
-    circle, draw, minimum size=2em, inner sep=2pt, font=\small,
-    every state/.try
-  },
-  accepting/.style={double, double distance=2pt, outer sep=1pt},
-  initial text/.initial={},
-  initial distance/.initial=0.7cm,
-  initial/.style={
-    append after command={%
-      [draw, ->, semithick]
-      ([shift={(-\pgfkeysvalueof{/tikz/initial distance},0)}]\tikzlastnode.west)
-      edge node[at start, anchor=east, font=\footnotesize]
-        {\pgfkeysvalueof{/tikz/initial text}}
-      (\tikzlastnode.west)
-    }
-  }
-}
-\tikzset{
-  every state/.append style={
-    semithick,
-    fill=gray!10
-  },
-  initial/.append style={
-    initial text={},
-    initial distance=0.5cm
-  },
-  accepting/.append style={
-    double=gray!10,
-    double distance=2pt,
-    outer sep=1pt
-  },
-  every edge/.append style={
-    draw, ->, >=stealth', auto, semithick
-  }
-}
-\let\epsilon\varepsilon
-\let\sym\texttt
-`;
+// Fallback path: if the pre-rendered SVG is missing (e.g. dev environment, or
+// a newly-authored block that hasn't been rendered yet), we fall back to the
+// in-browser tikzjax CDN bundle. tikzjax has its own quirks:
+//   - It scans for <script type="text/tikz"> once via window.onload, with no
+//     MutationObserver and no exposed re-process API.
+//   - Its bundled `automata` library is broken (loads but never registers
+//     /tikz/state), which is why our preamble re-implements the standard
+//     automata styles using basic TikZ primitives.
+// We poll for tikzjax's handler to appear on window.onload and re-invoke it
+// ourselves after injecting a script so the fallback works on SPA navigation
+// too.
+//
+// The preamble lives in src/tikz-preamble.tex so the build script and this
+// component agree on a single source of truth — change it there, not here.
+// CR normalisation matters because Git on Windows can hand us CRLF while the
+// build script (running under Bun/Node) reads LF; if the bytes hashed don't
+// match the bytes the script hashed, the <img> URL points at the wrong file
+// and we fall back to client rendering for no good reason.
+const TIKZ_PREAMBLE = tikzPreambleRaw.replace(/\r/g, "");
 
 function runTikzjax(retries = 40) {
   if (typeof window === "undefined") return;
@@ -325,36 +286,105 @@ function runTikzjax(retries = 40) {
   }
 }
 
+// Lazy-load the tikzjax CDN (~6 MB including fonts) only when a fallback
+// render is actually needed. Most pages hit the pre-rendered SVG path and
+// never trigger this. Memoised so concurrent TikzBlocks share a single load.
+let tikzjaxLoadPromise: Promise<void> | null = null;
+
+function loadTikzjaxCdn(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (tikzjaxLoadPromise) return tikzjaxLoadPromise;
+  tikzjaxLoadPromise = new Promise((resolve) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://tikzjax.com/v1/fonts.css";
+    document.head.appendChild(css);
+    const script = document.createElement("script");
+    script.src = "https://tikzjax.com/v1/tikzjax.js";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
+    document.head.appendChild(script);
+  });
+  return tikzjaxLoadPromise;
+}
+
 // tikzjax fails silently on stray whitespace and non-breaking spaces in the
 // source (e.g. pasted content). Following the obsidian-tikzjax convention,
-// trim every line, drop empty ones, and strip `&nbsp;`.
+// trim every line, drop empty ones, and strip `&nbsp;`/`\r`. The Node render
+// script applies the same transform before hashing, so the digest both sides
+// compute is identical.
 function tidyTikzSource(source: string): string {
   return source
+    .replace(/\r/g, "")
     .replace(/&nbsp;/g, "")
     .split("\n")
-    .map((l) => l.trim())
+    .map((l) => l.replace(/^>\s?/, "").trim())
     .filter((l) => l.length > 0)
     .join("\n");
 }
 
+// SHA-256 of `preamble + "\n" + tidied`, truncated to 16 hex chars. 64 bits
+// of hash is well into "collisions never happen at this scale" territory and
+// keeps URLs short.
+async function tikzHash(tidied: string): Promise<string> {
+  const buf = new TextEncoder().encode(TIKZ_PREAMBLE + "\n" + tidied);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest), (b) =>
+    b.toString(16).padStart(2, "0"),
+  )
+    .join("")
+    .slice(0, 16);
+}
+
 function TikzBlock({ code }: { code: string }) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const tidied = tidyTikzSource(code);
+  const [hash, setHash] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
+  const fallbackRef = useRef<HTMLDivElement>(null);
+
+  // Compute the SVG URL hash asynchronously (SubtleCrypto is async only).
+  // Cheap, but it does mean the first frame after mount is empty — that's
+  // fine because the image itself is a network request anyway.
   useEffect(() => {
-    const host = containerRef.current;
+    let cancelled = false;
+    tikzHash(tidied).then((h) => {
+      if (!cancelled) setHash(h);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tidied]);
+
+  // Fallback render: if the pre-rendered SVG 404'd, lazy-load the tikzjax
+  // CDN and inject a <script type="text/tikz"> for in-browser rendering.
+  // Cleared on every re-render so a successful image swap-in undoes any
+  // previous fallback render.
+  useEffect(() => {
+    const host = fallbackRef.current;
     if (!host) return;
     host.innerHTML = "";
+    if (!missing) return;
     const script = document.createElement("script");
     script.type = "text/tikz";
     script.setAttribute("data-show-console", "true");
-    script.textContent = TIKZ_PREAMBLE + tidyTikzSource(code);
+    script.textContent = TIKZ_PREAMBLE + tidied;
     host.appendChild(script);
-    runTikzjax();
-  }, [code]);
+    loadTikzjaxCdn().then(() => runTikzjax());
+  }, [missing, tidied]);
+
   return (
-    <div
-      ref={containerRef}
-      className="not-prose my-4 flex justify-center overflow-x-auto"
-    />
+    <div className="not-prose my-4 flex justify-center overflow-x-auto">
+      {hash && !missing && (
+        <img
+          src={`/Resources/Images/tikz/${hash}.svg`}
+          alt="TikZ diagram"
+          loading="lazy"
+          onError={() => setMissing(true)}
+        />
+      )}
+      <div ref={fallbackRef} />
+    </div>
   );
 }
 
