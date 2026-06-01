@@ -48,6 +48,38 @@ tikzjax (both the CDN bundle and the `node-tikzjax` port) ships a broken `automa
 - `npm run prebuild` runs the render automatically, so `npm run build` always ships up-to-date diagrams. Author a new tikz block, run `build` (or `tikz`), commit the markdown *and* the generated SVG.
 - `SKIP_TIKZ_PRERENDER=1`: set this environment variable to short-circuit the render script (it `exit 0`'s immediately). Used by the `Dockerfile` because node-tikzjax's WASM LaTeX kernel can OOM small containers (WSL2 defaults to ~4 GB), and the rendered SVGs are already committed in `Data/Resources/Images/tikz/` so Docker can just copy them through.
 
+### Authoring a new TikZ diagram
+
+The pipeline is opt-in by file extension: any ` ```tikz ` fenced block in a `.md` file under `Data/Resources/**` gets picked up automatically. To add a new diagram:
+
+1. **Write the TikZ in markdown.** Inside any `Data/Resources/Notes/**` or `Data/Resources/Solutions/**` markdown file, add a fenced block:
+
+   ````markdown
+   ```tikz
+   \begin{tikzpicture}
+   \node[state, initial] (q1) {$q_1$};
+   \draw (q1) edge[loop above] node {\sym{a}} (q1);
+   \end{tikzpicture}
+   ```
+   ````
+
+   Blocks inside callouts work too — drop a ` ```tikz ` fence inside any `>[!check]-` / `>[!hint]-` body and the render script strips the `> ` blockquote prefix before passing the source to LaTeX.
+
+2. **Render it.** From `frontend/apps/web/`, run `npm run tikz` (or just `npm run build`, which calls `tikz` via the `prebuild` hook). The script hashes `preamble + source`, writes the SVG to `Data/Resources/Images/tikz/<hash>.svg`, and skips blocks whose hash already exists. Expect ~1–3 s per new diagram on the first render; subsequent runs are near-instant.
+
+3. **Commit both files.** The markdown change AND the new `Data/Resources/Images/tikz/<hash>.svg`. The Dockerfile sets `SKIP_TIKZ_PRERENDER=1` so production builds copy the committed SVG straight through — if it isn't in git, the deployed site falls back to client-side tikzjax (a ~6 MB CDN load) for that block.
+
+4. **(Optional) Clean orphans.** Editing an existing block changes the hash, leaving the old SVG behind as an orphan. To prune, run `npm run tikz:clean && npm run tikz`. That dumps the whole cache and regenerates only what's still referenced by the current markdown.
+
+### What the SVGs ship with
+
+The render script post-processes each SVG so it themes correctly when inlined in the page:
+
+- Strokes / text labels get `class="tikz-arrow"` and use `currentColor`. Setting `color` on `.tikz-svg-host` in CSS recolours every arrow.
+- Node interior fills (and the gap-stroke of `accepting` double-circles) get `class="tikz-fill"` and reference `var(--tikz-fill, #f3f3f3)`. Overriding `--tikz-fill` per theme recolours every interior without touching the SVG.
+
+Both hooks are applied in `themeSvg(svg)` in `scripts/render-tikz.mjs`. The version comment at the top of `frontend/apps/web/src/tikz-preamble.tex` is part of the bytes fed into the hash, so bumping it forces every diagram to re-render — useful when you change `themeSvg` (e.g. introducing a new class) and want every cached file refreshed in one go.
+
 ### Fallback path
 
 For blocks that haven't been pre-rendered yet (typically: a freshly-authored block during `npm run dev`), `TikzBlock` falls back to client-side rendering via the tikzjax CDN. The CDN is **lazy-loaded** - `loadTikzjaxCdn()` injects `<link rel="stylesheet" href="…/fonts.css">` and `<script src="…/tikzjax.js">` only the first time a fallback is triggered, and the promise is memoised so concurrent TikzBlocks share one load. tikzjax's bundle is ~6 MB, so this keeps that cost off every page that contains diagrams.

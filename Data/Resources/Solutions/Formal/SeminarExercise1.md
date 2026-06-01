@@ -472,7 +472,7 @@ Assume standard binary representation.
 > Assuming "standard binary representation" means we restrict to positive integers (sidestepping the edge cases of $\varepsilon$ and leading zeros), the DFA only needs to track the running value modulo $3$.
 >
 > Three states: $q_0$ (mod $0$, accepting), $q_1$ (mod $1$), $q_2$ (mod $2$). Reading a bit $b$ from a state whose current value is $v$ moves us to state $(2v + b) \bmod 3$, since shifting left and adding $b$ is the standard binary-to-integer operation.
->
+> 
 > ```tikz
 > \begin{tikzpicture}
 > \node[state, initial, accepting] (q0) {$q_0$};

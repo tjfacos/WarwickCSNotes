@@ -2,10 +2,12 @@
     "Notes": {},
     "Solutions": {
         "CS143": {
-            "SeminarExercise1": "Formal/SeminarExercise1"
+            "SeminarExercise1": "Formal/SeminarExercise1",
+            "SeminarExercise2": "Formal/SeminarExercise2"
         },
         "CS259": {
-            "SeminarExercise1": "Formal/SeminarExercise1"
+            "SeminarExercise1": "Formal/SeminarExercise1",
+            "SeminarExercise2": "Formal/SeminarExercise2"
         }
     },
     "Images": {}
