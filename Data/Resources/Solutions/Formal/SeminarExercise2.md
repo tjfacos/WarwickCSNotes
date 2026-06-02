@@ -164,7 +164,7 @@
 > \draw (q0) edge node {\sym{b}} (qb);
 > \draw (qa) edge node {\sym{a}} (qc);
 > \draw (qc) edge[loop above] node {\sym{a}} (qc);
-> \draw (q0) edge[bend left=55] node {\sym{a}, \sym{b}} (qf);
+> \draw (q0) edge node {\sym{a}, \sym{b}} (qf);
 > \draw (qa) edge node {\sym{a}} (qf);
 > \draw (qc) edge node {\sym{a}} (qf);
 > \end{tikzpicture}
@@ -237,10 +237,10 @@ Given an NFA $M = (Q, \Sigma, q_0, F, \delta)$ for $L$, describe an NFA $M' = (Q
 > \begin{tikzpicture}
 > \node[state, initial] (q0) {$q_0$};
 > \node[state, right of=q0] (q1) {$q_1$};
-> \node[state, below of=q0] (q0t) {$\tilde q_0$};
-> \node[state, accepting, below of=q1] (q1t) {$\tilde q_1$};
-> \draw (q0) edge node {\sym{a}} (q1);
-> \draw (q0t) edge node {\sym{a}} (q1t);
+> \node[state, below of=q0] (q0t) {$\tilde{q_0}$};
+> \node[state, accepting, below of=q1] (q1t) {$\tilde{q_1}$};
+> \draw (q0) edge node {\sym{0}} (q1);
+> \draw (q0t) edge node {\sym{0}} (q1t);
 > \draw (q0) edge node {$a \in \Sigma$} (q0t);
 > \draw (q1) edge node {$a \in \Sigma$} (q1t);
 > \end{tikzpicture}

@@ -8,6 +8,7 @@
     "prebuild": "node scripts/render-tikz.mjs",
     "build": "tsc -b && vite build",
     "tikz": "node scripts/render-tikz.mjs",
+    "tikz:tikzjax": "node scripts/render-tikz-tikzjax.mjs",
     "tikz:clean": "node -e \"import('node:fs').then(m => m.rmSync('../../../Data/Resources/Images/tikz', { recursive: true, force: true }))\"",
     "lint": "eslint",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
