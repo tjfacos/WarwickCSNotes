@@ -101,6 +101,7 @@
 >
 > Formally, given a DFA $M = (Q, \Sigma, \delta, q_0, F)$ for $A$ and a target $i \in \mathbb{N}$, construct $M_i^A = (Q \cup Q_D, \Sigma, \delta', q_0, F)$ where $Q_D$ is a set of $\max(0, i - |Q|)$ fresh dead states and
 > $$\delta'(q, a) = \begin{cases} \delta(q, a) & q \in Q \\ q & q \in Q_D \end{cases}$$
+>
 > Every $d \in Q_D$ self-loops on every symbol; nothing in $Q$ ever transitions into $Q_D$. So $Q_D$ is unreachable from $q_0$, $L(M_i^A) = L(M) = A$, and $|Q \cup Q_D| \geq i$ by construction.
 
 
@@ -192,7 +193,7 @@
 > > Self-loops aren't a problem. Consider an accepting state $q_a$ with a self-loop on some symbol $a$. There is a transition created from $q_a$ to $q_f$ on $a$ (because there is a transition from $q_a$ to $q_a$, which is in the old $F$), so any accepted string that loops on $q_a$ can still do this - it can take the self-loop as many times as it wants, then on its final step take the new transition to $q_f$ instead.
 >
 > >[!note] Is it being an NFA necessary?
-> > Yes. The construction *keeps* every original transition and *adds* a new one to $q_f$ on top of it whenever the old transition pointed at a final state. That means some $(q, a)$ pairs now map to two destinations: the original $\delta(q, a)$ and the new $q_f$. A DFA's transition function is single-valued, so the augmented machine can only be expressed as an NFA. (You could collapse it back to a DFA via the subset construction, but the result no longer has a single final state.)
+> > Yes. The construction keeps every original transition and adds a new one to $q_f$ on top of it whenever the old transition pointed at a final state. That means some $(q, a)$ pairs now map to two destinations: the original $\delta(q, a)$ and the new $q_f$. A DFA's transition function is single-valued, so the augmented machine can only be expressed as an NFA.
 >
 > >[!note] Why specify $L \subseteq \Sigma^* \setminus \{\varepsilon\}$?
 > > Accepting $\varepsilon$ means the start state must itself be accepting. The construction needs at least one real symbol of input to reach $q_f$, since $q_f$ is only reached via the new transitions, which all consume a symbol. If $\varepsilon \in L$, the original NFA accepts the empty string by having $q_0 \in F$, but our new NFA would not (since $q_0 \notin \{q_f\}$ and there is no $\varepsilon$-transition into $q_f$). So the construction works for any regular language that doesn't contain $\varepsilon$.
@@ -216,7 +217,12 @@ Show that if $L$ is regular then so is $\text{chop}_1(L)$.
 >
 > To get an automaton for $\text{chop}_1(L)$, we want to start *one character in*: a string $w$ is in $\text{chop}_1(L)$ iff there is some symbol $a \in \Sigma$ such that $aw$ would be accepted by the old DFA. So we let the new automaton "fast-forward" past the first character before it reads any input.
 >
-> Define the **next-step set**:
+> Essentially, we:
+> - find the states you can get to after reading one symbol (let's call this set of states $\text{NS}$)
+> - introduce a new starting state
+> - have $\varepsilon$-transitions from the new starting state to each state in $\text{NS}$
+>
+> Formally, define the **next-step set**:
 > $$\text{NS} \;=\; \{\delta(q_0, a) \mid a \in \Sigma\}.$$
 > Because $\delta$ is total and deterministic, this is exactly the set of states the old DFA could be in after consuming exactly one symbol of input, one entry per symbol of $\Sigma$.
 >
@@ -232,13 +238,18 @@ Show that if $L$ is regular then so is $\text{chop}_1(L)$.
 > > If $\delta(q_0, a) = q_0$ for some $a \in \Sigma$, then $q_0 \in \text{NS}$, so $q_s$ has an $\varepsilon$-transition to $q_0$. Any string that uses the self-loop *after* the first character to do work is still accepted: the new NFA jumps to $q_0$ via $\varepsilon$, then runs as the old DFA would have done after consuming the first character.
 
 >[!check]- Alternative Solution
-> *Using a DFA simplifies this proof considerably (see the Solution above). The construction below works the same way but starts from an NFA, so it has to chase $\varepsilon$-closures and union over multi-state destinations.
+> *Using a DFA simplifies this proof considerably (see the Solution above). The construction below works the same way but starts from an NFA, so it has to chase $\varepsilon$-closures and union over multi-state destinations.*
 >
 > Since $L$ is regular, there exists an NFA $(Q, \Sigma, \delta, q_0, F)$ that accepts $L$.
 >
 > To get an NFA for $\text{chop}_1(L)$, we want to start *one character in*: a string $w$ is in $\text{chop}_1(L)$ iff there is some symbol $a \in \Sigma$ such that $aw$ would be accepted by the old NFA. So we let the new NFA "fast-forward" past the first character before it reads any input.
 >
-> Let $\text{E-CLOSE}(S)$ denote the $\varepsilon$-closure of a set of states $S$: every state reachable from $S$ by following only $\varepsilon$-transitions (including the states in $S$ themselves). Define the **next-step set**:
+> Essentially, we:
+> - find the states you can get to after reading one symbol (let's call this set of states $\text{NS}$)
+> - introduce a new starting state
+> - have $\varepsilon$-transitions from the new starting state to each state in $\text{NS}$
+>
+> Let $\text{E-CLOSE}(S)$ denote the $\varepsilon$-closure of a set of states $S$: every state reachable from $S$ by following only $\varepsilon$-transitions (including the states in $S$ themselves). Formally, define the **next-step set**:
 > $$\text{NS} \;=\; \bigcup_{a \in \Sigma} \;\text{E-CLOSE}\!\Bigl(\,\bigcup_{p \,\in\, \text{E-CLOSE}(\{q_0\})} \delta(p, a)\Bigr).$$
 > This is exactly the set of states the old NFA could be in after consuming exactly one symbol of input (any $\varepsilon$-moves before the symbol, the symbol itself, any $\varepsilon$-moves afterwards).
 >
@@ -247,11 +258,6 @@ Show that if $L$ is regular then so is $\text{chop}_1(L)$.
 > with $\delta'$ extending $\delta$ by $\delta'(q_s, \varepsilon) = \text{NS}$ and $\delta'(q_s, a) = \emptyset$ for every $a \in \Sigma$. Every other transition is unchanged.
 >
 > **Running the proposed NFA:** The new NFA, starting at $q_s$, takes one $\varepsilon$-jump into some $q \in \text{NS}$ and then runs the original NFA on whatever input remains. A string $w$ is accepted iff there is some $q \in \text{NS}$ such that the old NFA accepts $w$ when started from $q$, iff there is some symbol $a$ such that the old NFA accepts $aw$ when started from $q_0$, iff $w \in \text{chop}_1(L)$.
->
-> **Common concerns:**
->
-> >[!note] What about self-loops on the old initial state?
-> > If $q_0$ has a self-loop on some symbol $a$ (so $q_0 \in \delta(q_0, a)$), then $q_0 \in \text{NS}$, so $q_s$ has an $\varepsilon$-transition to $q_0$. Any string that uses the self-loop *after* the first character to do work is still accepted: the new NFA jumps to $q_0$ via $\varepsilon$, then loops on $q_0$ as the old NFA would have done after consuming the first character.
 
 
 **(f)** For each $L \subseteq \Sigma^*$, define:
