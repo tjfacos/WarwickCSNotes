@@ -59,38 +59,45 @@
 >
 > The fix is to add an arbitrary number of "dead" states to the DFA that accepts the language: states that are unreachable from $q_0$, with self-loops on every symbol so the DFA stays total. They contribute nothing to the recognised language but bump up $|Q|$, so for any $i$ we can produce a DFA with at least $i$ states.
 >
-> *Example.* Take $L = \{a\}$ over $\Sigma = \{a, b\}$. A DFA for $L$ has just $2$ reachable states (with the implicit trap absorbing everything else):
+> *Example.* Take $L = \{a\}$ over $\Sigma = \{a, b\}$. The minimal DFA for $L$ has $3$ states: the initial $q_1$, the accepting $q_2$ reached by reading $a$, and a sink $q_3$ that absorbs any symbol the language doesn't permit (the $b$ from $q_1$, and any further symbol from $q_2$).
 >
 > ```tikz
 > \begin{tikzpicture}
 > \node[state, initial] (q1) {$q_1$};
 > \node[state, accepting, right of=q1] (q2) {$q_2$};
+> \node[state, below of=q2] (q3) {$q_3$};
 > \draw (q1) edge node {\sym{a}} (q2);
+> \draw (q1) edge node {\sym{b}} (q3);
+> \draw (q2) edge node {\sym{a}, \sym{b}} (q3);
+> \draw (q3) edge[loop right] node {\sym{a}, \sym{b}} (q3);
 > \end{tikzpicture}
 > ```
 >
-> For $i = 8$, we can add $6$ unreachable dead states $d_1, \ldots, d_6$:
+> For $i = 8$, we can extend this with $5$ unreachable dead states $d_1, \ldots, d_5$. They don't change the language because no transition out of $q_1, q_2, q_3$ ever lands in them.
 >
 > ```tikz
 > \begin{tikzpicture}
 > \node[state, initial] (q1) {$q_1$};
 > \node[state, accepting, right of=q1] (q2) {$q_2$};
+> \node[state, below of=q2] (q3) {$q_3$};
 > \draw (q1) edge node {\sym{a}} (q2);
-> \node[state, below of=q1] (d1) {$d_1$};
+> \draw (q1) edge node {\sym{b}} (q3);
+> \draw (q2) edge node {\sym{a}, \sym{b}} (q3);
+> \draw (q3) edge[loop right] node {\sym{a}, \sym{b}} (q3);
+> \node[state] (d1) at (0, -5) {$d_1$};
 > \node[state, right of=d1] (d2) {$d_2$};
 > \node[state, right of=d2] (d3) {$d_3$};
-> \node[state, below of=d1] (d4) {$d_4$};
+> \node[state, right of=d3] (d4) {$d_4$};
 > \node[state, right of=d4] (d5) {$d_5$};
-> \node[state, right of=d5] (d6) {$d_6$};
-> \draw (d1) edge[loop left] node {\sym{a}, \sym{b}} (d1);
+> \draw (d1) edge[loop below] node {\sym{a}, \sym{b}} (d1);
 > \draw (d2) edge[loop below] node {\sym{a}, \sym{b}} (d2);
-> \draw (d3) edge[loop right] node {\sym{a}, \sym{b}} (d3);
-> \draw (d4) edge[loop left] node {\sym{a}, \sym{b}} (d4);
+> \draw (d3) edge[loop below] node {\sym{a}, \sym{b}} (d3);
+> \draw (d4) edge[loop below] node {\sym{a}, \sym{b}} (d4);
 > \draw (d5) edge[loop below] node {\sym{a}, \sym{b}} (d5);
-> \draw (d6) edge[loop right] node {\sym{a}, \sym{b}} (d6);
 > \end{tikzpicture}
 > ```
-> *Note we have self-loop transitions on the "dead" states because in DFAs, the transition function is a function so must map every symbol, state pair to exactly one state*
+>
+> *Note that both the sink $q_3$ and each dead state $d_i$ carry self-loops on every symbol. A DFA's transition function must be total: every $(q, a)$ pair maps to exactly one state, even when the destination is "rejecting forever".*
 >
 > Formally, given a DFA $M = (Q, \Sigma, \delta, q_0, F)$ for $A$ and a target $i \in \mathbb{N}$, construct $M_i^A = (Q \cup Q_D, \Sigma, \delta', q_0, F)$ where $Q_D$ is a set of $\max(0, i - |Q|)$ fresh dead states and
 > $$\delta'(q, a) = \begin{cases} \delta(q, a) & q \in Q \\ q & q \in Q_D \end{cases}$$
@@ -127,6 +134,9 @@
 > - add $\varepsilon$-transitions from each old final state to $q_f$.
 >
 > This introduces $\varepsilon$-transitions, which we aren't allowed. Is there a way to add appropriate transitions (ones that read a real symbol of $\Sigma$) into $q_f$ instead?
+
+>[!hint]- Hint 3
+> Normally we have $\varepsilon$-transitions from old final states to the new final state $q_f$. Since we can't have $\varepsilon$-transitions, can we go a step further: what about the states that have transitions *to* the old final states?
 
 >[!check]- Solution
 > **True.**
@@ -181,8 +191,11 @@
 > >[!note] What about self-loops on accepting states?
 > > Self-loops aren't a problem. Consider an accepting state $q_a$ with a self-loop on some symbol $a$. There is a transition created from $q_a$ to $q_f$ on $a$ (because there is a transition from $q_a$ to $q_a$, which is in the old $F$), so any accepted string that loops on $q_a$ can still do this - it can take the self-loop as many times as it wants, then on its final step take the new transition to $q_f$ instead.
 >
+> >[!note] Is it being an NFA necessary?
+> > Yes. The construction *keeps* every original transition and *adds* a new one to $q_f$ on top of it whenever the old transition pointed at a final state. That means some $(q, a)$ pairs now map to two destinations: the original $\delta(q, a)$ and the new $q_f$. A DFA's transition function is single-valued, so the augmented machine can only be expressed as an NFA. (You could collapse it back to a DFA via the subset construction, but the result no longer has a single final state.)
+>
 > >[!note] Why specify $L \subseteq \Sigma^* \setminus \{\varepsilon\}$?
-> > The construction needs at least one real symbol of input to reach $q_f$ and $q_f$ is only reached via the new transitions, which all consume a symbol. If $\varepsilon \in L$, the original NFA accepts the empty string by having $q_0 \in F$, but our new NFA would not (since $q_0 \notin \{q_f\}$ and there is no $\varepsilon$-transition into $q_f$). So the construction works for any regular language that doesn't contain $\varepsilon$.
+> > Accepting $\varepsilon$ means the start state must itself be accepting. The construction needs at least one real symbol of input to reach $q_f$, since $q_f$ is only reached via the new transitions, which all consume a symbol. If $\varepsilon \in L$, the original NFA accepts the empty string by having $q_0 \in F$, but our new NFA would not (since $q_0 \notin \{q_f\}$ and there is no $\varepsilon$-transition into $q_f$). So the construction works for any regular language that doesn't contain $\varepsilon$.
 
 
 **(e)** For every $i \in \mathbb{N}$ and language $L \subseteq \Sigma^*$, we create a new language $\text{chop}_i(L)$ by taking strings in $L$ of length at least $i$ and then removing the $i$ leftmost symbols. Formally,
@@ -193,9 +206,34 @@ Show that if $L$ is regular then so is $\text{chop}_1(L)$.
 > Is there a way we can "skip" the first input read?
 
 >[!hint]- Hint 2
-> We could introduce a new initial state which has transitions to the states which are "one input in" (i.e. the states the old NFA could be in after consuming exactly one symbol). What exactly are these states, and what kind of transition should be from the new initial state to these states?
+> We could introduce a new initial state which has transitions to the states which are "one input in" (i.e. the states the old NFA/DFA could be in after consuming exactly one symbol). What exactly are these states, and what kind of transition should be from the new initial state to these states?
+
+>[!hint]- Hint 3
+> If you use $L$ being regular to say there exists an NFA, then finding the states which are "one input in" is a little complicated as you have to deal with $\varepsilon$-closures (as defined in the textbook). Is it easier to use a DFA?
 
 >[!check]- Solution
+> Since $L$ is regular, there exists a DFA $(Q, \Sigma, \delta, q_0, F)$ that accepts $L$.
+>
+> To get an automaton for $\text{chop}_1(L)$, we want to start *one character in*: a string $w$ is in $\text{chop}_1(L)$ iff there is some symbol $a \in \Sigma$ such that $aw$ would be accepted by the old DFA. So we let the new automaton "fast-forward" past the first character before it reads any input.
+>
+> Define the **next-step set**:
+> $$\text{NS} \;=\; \{\delta(q_0, a) \mid a \in \Sigma\}.$$
+> Because $\delta$ is total and deterministic, this is exactly the set of states the old DFA could be in after consuming exactly one symbol of input, one entry per symbol of $\Sigma$.
+>
+> Now introduce a fresh start state $q_s$ that $\varepsilon$-transitions to every state in $\text{NS}$. The new automaton is an NFA
+> $$(Q \cup \{q_s\},\; \Sigma,\; \delta',\; q_s,\; F)$$
+> with $\delta'$ extending $\delta$ by $\delta'(q_s, \varepsilon) = \text{NS}$ and $\delta'(q_s, a) = \emptyset$ for every $a \in \Sigma$. Every other transition is unchanged.
+>
+> **Running the proposed NFA:** Starting at $q_s$, the new automaton takes one $\varepsilon$-jump into some $q \in \text{NS}$, then runs the original DFA on whatever input remains. A string $w$ is accepted iff there is some $q \in \text{NS}$ such that the old DFA accepts $w$ when started from $q$, iff there is some symbol $a$ such that the old DFA accepts $aw$ when started from $q_0$, iff $w \in \text{chop}_1(L)$.
+>
+> **Common concerns:**
+>
+> >[!note] What about self-loops on the old initial state?
+> > If $\delta(q_0, a) = q_0$ for some $a \in \Sigma$, then $q_0 \in \text{NS}$, so $q_s$ has an $\varepsilon$-transition to $q_0$. Any string that uses the self-loop *after* the first character to do work is still accepted: the new NFA jumps to $q_0$ via $\varepsilon$, then runs as the old DFA would have done after consuming the first character.
+
+>[!check]- Alternative Solution
+> *Using a DFA simplifies this proof considerably (see the Solution above). The construction below works the same way but starts from an NFA, so it has to chase $\varepsilon$-closures and union over multi-state destinations.
+>
 > Since $L$ is regular, there exists an NFA $(Q, \Sigma, \delta, q_0, F)$ that accepts $L$.
 >
 > To get an NFA for $\text{chop}_1(L)$, we want to start *one character in*: a string $w$ is in $\text{chop}_1(L)$ iff there is some symbol $a \in \Sigma$ such that $aw$ would be accepted by the old NFA. So we let the new NFA "fast-forward" past the first character before it reads any input.
@@ -231,7 +269,17 @@ Given an NFA $M = (Q, \Sigma, q_0, F, \delta)$ for $L$, describe an NFA $M' = (Q
 >[!check]- Solution
 > We construct $M'$ by taking the original NFA $M$ and a "clone" of $M$. We have '$a$' transitions from each state in the original $M$ to the corresponding state in the clone of $M$. Only the clone of $M$ will have accepting states.
 >
-> Visually, the cloning pattern looks like this (the original $M$ on top, its clone below; each state has a "switch" edge to its clone on any symbol $a \in \Sigma$, and only the cloned final state is accepting):
+> **Visual Example:** start with a small original $M$ that accepts the language $L = \{0\}$ over $\Sigma = \{0, 1\}$:
+>
+> ```tikz
+> \begin{tikzpicture}
+> \node[state, initial] (q0) {$q_0$};
+> \node[state, accepting, right of=q0] (q1) {$q_1$};
+> \draw (q0) edge node {\sym{0}} (q1);
+> \end{tikzpicture}
+> ```
+>
+> Now apply the cloning construction to get $M'$. The original $M$ sits on top, its clone $\widetilde{M}$ below; each state in the original has a "switch" edge to its clone on any symbol $a \in \Sigma$, and only the cloned final state $\tilde{q}_1$ is accepting. The accepting status of the *original* $q_1$ is dropped, since acceptance has been moved to the clone side:
 >
 > ```tikz
 > \begin{tikzpicture}
@@ -245,6 +293,8 @@ Given an NFA $M = (Q, \Sigma, q_0, F, \delta)$ for $L$, describe an NFA $M' = (Q
 > \draw (q1) edge node {$a \in \Sigma$} (q1t);
 > \end{tikzpicture}
 > ```
+>
+> Reading the new $M'$ to confirm: $L(M) = \{0\}$, so $\text{insert}(L) = \{00, 10, 01\}$ (any one-symbol insertion into the only string in $L$). And indeed the only paths from $q_0$ to the lone accepting $\tilde{q}_1$ in $M'$ trace $00$, $10$, and $01$.
 >
 > So at every state $s$ in original M, we have a choice: either continue as $M$ would, or treat the symbol as the inserted '$a$' and "switch" to the clone state corresponding to $s$. Since only states on the clone side are accepting, any accepting run must switch exactly once i.e. must insert once. 
 >
