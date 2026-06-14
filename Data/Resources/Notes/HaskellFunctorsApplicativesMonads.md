@@ -90,7 +90,9 @@ class Applicative m => Monad m where
     ...
 ```
 
-`Monad` is a subclass of `Applicative`, which gives us one last operator, `(>>=)` (pronounced 'bind'), which defines what to do if we want to pass a lifted value into a function that returns a lifted value.
+`Monad` is a subclass of `Applicative`, which gives us one last operator, `(>>=)` (pronounced 'bind'), which defines what to do if we want to pass a lifted value into a function that returns a lifted value - allowing us to pass the value down a chain.
+
+> There is also `(>>)`, which discards the previous value.
 
 ```hs
 -- From Prelude...
