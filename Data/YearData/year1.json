@@ -176,7 +176,7 @@
             ],
             "exercise_solutions": [],
             "external_resources": [
-                {"name": "Computer Security (3rd ed) by Dieter Gollmann", "url":"https://go.exlibris.link/x3XvLhzk", "description": "Reccomended reading by the module organiser."}
+                {"name": "Computer Security (3rd ed) by Dieter Gollmann", "url":"https://go.exlibris.link/x3XvLhzk", "description": "Recommended reading by the module organiser."}
             ],
             "assessments": [
                 {"title": "Coursework 1 - web server", "submission_deadline": "2025-12-04 12:00 PM", "weighting": 5, "eligible_for_self_certification": false},
@@ -205,7 +205,7 @@
             ],
             "past_papers": [
                 {"title": "2025 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2025/cs1410_exam_paper.pdf"},
-                {"title": "2024 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2024/cs1410_exam_paper.pdf"},
+                {"title": "2024 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2024/cs1410_exam_paper.pdf", "solution": {"url": "/resources/Solutions/CS141/CS141-2024", "unfinished": true}},
                 {"title": "2023 Exam Paper", "url": "https://warwick.ac.uk/services/exampapers/cs/2023/cs1410_c_exam_paper.pdf"}
             ],
             "seminar_exercises": [

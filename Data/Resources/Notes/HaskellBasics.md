@@ -136,7 +136,7 @@ ex = 'x'
 -- this has type String
 greeting = "Hello, world!"
 -- this has type Bool
-someBoolean = True && False || true
+someBoolean = True && False || True
 -- this has type Integer
 five = min 5 6
 ```
