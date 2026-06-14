@@ -384,6 +384,45 @@ def api_quiz(quiz_id):
         return json.load(f)
 
 
+def _load_resource_map():
+    """Optional per-module rewrite from a short resource name to its on-disk
+    path inside a category directory. Lets us keep URLs flat
+    (`/resources/Solutions/CS143/SeminarExercise1`) while files live in
+    subfolders (`Data/Resources/Solutions/Formal/SeminarExercise1.md`).
+
+    Shape: {category: {module_code: {name: "subdir/name"}}}. Missing file or
+    invalid JSON degrades silently to the empty map (no rewrites)."""
+    path = os.path.join(RESOURCES_DIR, "ResourceMap.json")
+    if not os.path.exists(path):
+        return {}
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _find_in_tree(directory, filename):
+    """Locate a resource by name anywhere inside `directory`. If `filename`
+    already carries an extension we look for an exact match; otherwise we
+    probe CONTENT_EXTENSIONS. Returns the matching path relative to
+    `directory`, or None if nothing matches.
+
+    Used as the fallback when ResourceMap.json doesn't carry an entry for the
+    requested name, so files dropped into a subfolder under Notes/ or
+    Solutions/ are reachable without first registering them in the map."""
+    if "." in filename:
+        target_names = {filename}
+    else:
+        target_names = {f"{filename}.{ext}" for ext in CONTENT_EXTENSIONS}
+    for root, _dirs, files in os.walk(directory):
+        for tname in target_names:
+            if tname in files:
+                return os.path.relpath(os.path.join(root, tname), directory)
+    return None
+
+
 @app.route("/resources/<category>/<module_code>/<filename>")
 def resource(category, module_code, filename):
     """Unified resource endpoint.
@@ -391,21 +430,45 @@ def resource(category, module_code, filename):
     URL: /resources/<Category>/<ModuleCode>/<Filename>
     File: Data/Resources/<Category>/<Filename>.<ext>
 
-    module_code is for URL/breadcrumb context only; file lookup is flat
-    inside each category directory. Filenames can include the module
-    code themselves if they need to be unique per module (e.g. solutions
-    use "CS130-2025.md").
+    `filename` is a flat name in the URL. Lookup order:
+      1. ResourceMap.json[category][module_code][filename], if present.
+      2. Tree search through the category directory, matching any file whose
+         name (with or without one of CONTENT_EXTENSIONS) equals `filename`.
 
     Browser navigations (Accept: text/html) get the SPA shell so the
-    frontend can render the page.  Fetch/XHR requests get the raw file.
+    frontend can render the page. Fetch/XHR requests get the raw file.
     """
     if "text/html" in request.headers.get("Accept", ""):
         return send_from_directory(DIST_DIR, "index.html")
-    del module_code
     if category not in RESOURCE_CATEGORIES:
         abort(404)
     directory = os.path.join(RESOURCES_DIR, category)
-    return serve_content(directory, filename)
+    rmap = _load_resource_map()
+    mapped = rmap.get(category, {}).get(module_code, {}).get(filename)
+    if mapped is None:
+        mapped = _find_in_tree(directory, filename)
+        if mapped is None:
+            abort(404)
+    if not isinstance(mapped, str) or ".." in mapped.replace("\\", "/").split("/"):
+        abort(404)
+    return serve_content(directory, mapped)
+
+
+@app.route("/Resources/Images/tikz/<filename>")
+def tikz_image(filename):
+    """Serve a pre-rendered TikZ SVG with an immutable cache header.
+
+    Filenames are SHA-256 content addresses (see scripts/render-tikz.mjs), so
+    the bytes for a given URL never change — `immutable` lets the browser
+    skip revalidation forever."""
+    if "/" in filename or "\\" in filename or filename.startswith("."):
+        abort(404)
+    directory = os.path.join(DIST_DIR, "Resources", "Images", "tikz")
+    if not os.path.isfile(os.path.join(directory, filename)):
+        abort(404)
+    response = send_from_directory(directory, filename)
+    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
 
 
 @app.route("/")

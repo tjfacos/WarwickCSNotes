@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { Children, isValidElement, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import tikzPreambleRaw from "../tikz-preamble.tex?raw";
 import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -242,6 +243,192 @@ function remarkObsidianCallouts() {
   };
 }
 
+// TikZ rendering. Production strategy: every ```tikz``` block in the repo is
+// pre-rendered to a static SVG at build time (see scripts/render-tikz.mjs)
+// and served as `/Resources/Images/tikz/<hash>.svg`. <hash> is
+// sha256(preamble + tidied source) truncated to 16 hex chars, computed both
+// here and in the render script so the URLs line up.
+//
+// Fallback path: if the pre-rendered SVG is missing (e.g. dev environment, or
+// a newly-authored block that hasn't been rendered yet), we fall back to the
+// in-browser tikzjax CDN bundle. tikzjax has its own quirks:
+//   - It scans for <script type="text/tikz"> once via window.onload, with no
+//     MutationObserver and no exposed re-process API.
+//   - Its bundled `automata` library is broken (loads but never registers
+//     /tikz/state), which is why our preamble re-implements the standard
+//     automata styles using basic TikZ primitives.
+// We poll for tikzjax's handler to appear on window.onload and re-invoke it
+// ourselves after injecting a script so the fallback works on SPA navigation
+// too.
+//
+// The preamble lives in src/tikz-preamble.tex so the build script and this
+// component agree on a single source of truth — change it there, not here.
+// CR normalisation matters because Git on Windows can hand us CRLF while the
+// build script (running under Bun/Node) reads LF; if the bytes hashed don't
+// match the bytes the script hashed, the <img> URL points at the wrong file
+// and we fall back to client rendering for no good reason.
+const TIKZ_PREAMBLE = tikzPreambleRaw.replace(/\r/g, "");
+
+function runTikzjax(retries = 40) {
+  if (typeof window === "undefined") return;
+  const fn = window.onload as ((ev: Event) => unknown) | null;
+  if (typeof fn === "function") {
+    try {
+      fn.call(window, new Event("load"));
+    } catch {
+      // tikzjax may throw if the same script has already been processed,
+      // which is fine: the SVG is already in place.
+    }
+    return;
+  }
+  if (retries > 0) {
+    window.setTimeout(() => runTikzjax(retries - 1), 200);
+  }
+}
+
+// Lazy-load the tikzjax CDN (~6 MB including fonts) only when a fallback
+// render is actually needed. Most pages hit the pre-rendered SVG path and
+// never trigger this. Memoised so concurrent TikzBlocks share a single load.
+let tikzjaxLoadPromise: Promise<void> | null = null;
+
+function loadTikzjaxCdn(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (tikzjaxLoadPromise) return tikzjaxLoadPromise;
+  tikzjaxLoadPromise = new Promise((resolve) => {
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "https://tikzjax.com/v1/fonts.css";
+    document.head.appendChild(css);
+    const script = document.createElement("script");
+    script.src = "https://tikzjax.com/v1/tikzjax.js";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
+    document.head.appendChild(script);
+  });
+  return tikzjaxLoadPromise;
+}
+
+// tikzjax fails silently on stray whitespace and non-breaking spaces in the
+// source (e.g. pasted content). Following the obsidian-tikzjax convention,
+// trim every line, drop empty ones, and strip `&nbsp;`/`\r`. The Node render
+// script applies the same transform before hashing, so the digest both sides
+// compute is identical.
+function tidyTikzSource(source: string): string {
+  return source
+    .replace(/\r/g, "")
+    .replace(/&nbsp;/g, "")
+    .split("\n")
+    .map((l) => l.replace(/^>\s?/, "").trim())
+    .filter((l) => l.length > 0)
+    .join("\n");
+}
+
+// SHA-256 of `preamble + "\n" + tidied`, truncated to 16 hex chars. 64 bits
+// of hash is well into "collisions never happen at this scale" territory and
+// keeps URLs short.
+async function tikzHash(tidied: string): Promise<string> {
+  const buf = new TextEncoder().encode(TIKZ_PREAMBLE + "\n" + tidied);
+  const digest = await crypto.subtle.digest("SHA-256", buf);
+  return Array.from(new Uint8Array(digest), (b) =>
+    b.toString(16).padStart(2, "0"),
+  )
+    .join("")
+    .slice(0, 16);
+}
+
+// Module-level cache so multiple TikzBlocks sharing the same hash do exactly
+// one network round-trip per session. The HTTP layer is already immutable-
+// cached server-side, but the JS-level cache also avoids re-parsing the SVG
+// markup on remount.
+const tikzSvgCache = new Map<string, string | null>();
+
+async function fetchTikzSvg(hash: string): Promise<string | null> {
+  if (tikzSvgCache.has(hash)) return tikzSvgCache.get(hash) ?? null;
+  try {
+    const res = await fetch(`/Resources/Images/tikz/${hash}.svg`);
+    if (!res.ok) {
+      tikzSvgCache.set(hash, null);
+      return null;
+    }
+    const text = await res.text();
+    tikzSvgCache.set(hash, text);
+    return text;
+  } catch {
+    tikzSvgCache.set(hash, null);
+    return null;
+  }
+}
+
+function TikzBlock({ code }: { code: string }) {
+  const tidied = tidyTikzSource(code);
+  const [svgHtml, setSvgHtml] = useState<string | null>(null);
+  const [missing, setMissing] = useState(false);
+  const fallbackRef = useRef<HTMLDivElement>(null);
+
+  // Compute hash, fetch the SVG bytes, and stash the markup. The SVG is
+  // inlined via dangerouslySetInnerHTML below (rather than referenced through
+  // <img src=…>) so the `tikz-arrow` / `tikz-fill` classes and the
+  // `currentColor` / `var(--tikz-fill)` references inside the SVG resolve
+  // against the parent document's CSS — that's what makes per-theme
+  // recolouring work.
+  useEffect(() => {
+    let cancelled = false;
+    tikzHash(tidied).then(async (h) => {
+      if (cancelled) return;
+      const svg = await fetchTikzSvg(h);
+      if (cancelled) return;
+      if (svg !== null) {
+        setSvgHtml(svg);
+        setMissing(false);
+      } else {
+        setMissing(true);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tidied]);
+
+  // Fallback render: if the pre-rendered SVG 404'd, lazy-load the tikzjax
+  // CDN and inject a <script type="text/tikz"> for in-browser rendering.
+  // Cleared on every re-render so a successful inline swap-in undoes any
+  // previous fallback render.
+  useEffect(() => {
+    const host = fallbackRef.current;
+    if (!host) return;
+    host.innerHTML = "";
+    if (!missing) return;
+    const script = document.createElement("script");
+    script.type = "text/tikz";
+    script.setAttribute("data-show-console", "true");
+    script.textContent = TIKZ_PREAMBLE + tidied;
+    host.appendChild(script);
+    loadTikzjaxCdn().then(() => runTikzjax());
+  }, [missing, tidied]);
+
+  return (
+    <div className="not-prose my-4 flex justify-center overflow-x-auto tikz-svg-host">
+      {svgHtml && !missing && (
+        <span
+          aria-label="TikZ diagram"
+          role="img"
+          dangerouslySetInnerHTML={{ __html: svgHtml }}
+        />
+      )}
+      <div ref={fallbackRef} />
+    </div>
+  );
+}
+
+// react-markdown wraps fenced code blocks in `<pre><code class="language-...">`.
+// We detect tikz in the `code` renderer (where the class is in hand) and in
+// the `pre` renderer we unwrap when the rendered child IS a TikzBlock so we
+// don't end up with <pre><div>...</div></pre>.
+function isTikzChild(child: unknown): boolean {
+  return isValidElement(child) && child.type === TikzBlock;
+}
+
 function Callout({ type, title, fold, children }: { type: string; title: string; fold: string; children: React.ReactNode }) {
   const style = CALLOUT_TYPES[type] ?? CALLOUT_TYPES.note;
   const Icon = style.icon;
@@ -281,9 +468,14 @@ function Callout({ type, title, fold, children }: { type: string; title: string;
         </span>
         {collapsible && <ChevronDown className={`h-4 w-4 transition-transform ${open ? '' : '-rotate-90'}`} />}
       </div>
-      {(!collapsible || open) && (
-        <div className="mt-2 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">{children}</div>
-      )}
+      {/* Always render children so that things like TikZ scripts inside a
+          collapsed callout still mount and get processed on page load. We
+          just hide them visually when the callout is closed. */}
+      <div
+        className={`mt-2 [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 ${collapsible && !open ? "hidden" : ""}`}
+      >
+        {children}
+      </div>
     </div>
   );
 }
@@ -320,7 +512,15 @@ export function MarkdownContent({ content, extension }: { content: string; exten
             }
             return <blockquote className="border-l-4 border-muted pl-4 italic my-4 text-muted-foreground">{children}</blockquote>;
           },
+          pre: ({ children, ...props }) => {
+            const arr = Children.toArray(children);
+            if (arr.length === 1 && isTikzChild(arr[0])) return <>{arr[0]}</>;
+            return <pre {...props}>{children}</pre>;
+          },
           code: ({ children, className }) => {
+            if (className === "language-tikz") {
+              return <TikzBlock code={String(children).replace(/\n$/, "")} />;
+            }
             if (!className) {
               return <code className="bg-muted rounded px-1.5 py-0.5 text-sm font-mono">{children}</code>;
             }

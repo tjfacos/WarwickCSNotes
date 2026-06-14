@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react"
-import { ChevronDown } from "lucide-react"
+import React, { useEffect, useRef, useState } from "react"
+import { ArrowDown, ChevronDown } from "lucide-react"
 import ReactMarkdown from "react-markdown"
 import remarkMath from "remark-math"
 import rehypeKatex from "rehype-katex"
@@ -81,6 +81,16 @@ export type SortQuestion = {
   correct: number[]
 }
 
+/** Drag items into N numbered positions stacked vertically with arrows
+ *  between them, so the layout reads top-to-bottom as a pipeline. `items`
+ *  is the correct order; we shuffle the pool at render time. Each position
+ *  holds exactly one item, so dropping onto an occupied position swaps. */
+export type OrderQuestion = {
+  type: "order"
+  prompt: string
+  items: string[]
+}
+
 export type Question =
   | TextQuestion
   | CheckboxQuestion
@@ -88,6 +98,7 @@ export type Question =
   | MultiTextQuestion
   | OrderedMultiTextQuestion
   | SortQuestion
+  | OrderQuestion
 
 type Answer = string | number[] | string[]
 type Correctness = "correct" | "partial" | "wrong"
@@ -224,6 +235,16 @@ function grade(q: Question, ans: Answer | undefined): Correctness {
     if (hits > 0) return "partial"
     return "wrong"
   }
+  if (q.type === "order") {
+    // placement[itemIdx] is the position the user dropped that item into,
+    // or -1 if it's still in the pool. Items are listed in correct order in
+    // q.items, so the correct position of items[i] is i.
+    const placement = ans as number[]
+    const hits = q.items.filter((_, i) => placement[i] === i).length
+    if (hits === q.items.length) return "correct"
+    if (hits > 0) return "partial"
+    return "wrong"
+  }
   const choice = ans as number[]
   return q.correct.every((c, i) => choice[i] === c) ? "correct" : "wrong"
 }
@@ -247,6 +268,11 @@ function pointsFor(q: Question, ans: Answer | undefined): number {
   if (q.type === "sort") {
     const placement = ans as number[]
     const hits = q.correct.filter((c, idx) => placement[idx] === c).length
+    return hits / q.items.length
+  }
+  if (q.type === "order") {
+    const placement = ans as number[]
+    const hits = q.items.filter((_, i) => placement[i] === i).length
     return hits / q.items.length
   }
   return grade(q, ans) === "wrong" ? 0 : 1
@@ -576,6 +602,261 @@ function SortRenderer({
               </p>
             ) : null
           )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Vertical-pipeline ordering question. Positions are stacked top-to-bottom
+ *  with arrows between them; each position holds exactly one item, and the
+ *  pool below holds anything not yet placed. Dropping onto an occupied
+ *  position swaps the two items so the user can rearrange freely. */
+function OrderRenderer({
+  q,
+  placement,
+  submitted,
+  instaCheck,
+  onChange,
+}: {
+  q: OrderQuestion
+  placement: number[]
+  submitted: boolean
+  instaCheck: boolean
+  onChange: (next: number[]) => void
+}) {
+  const itemCount = q.items.length
+  // Drop zones registered by position index. -1 is the pool.
+  const zonesRef = useRef<Map<number, HTMLDivElement>>(new Map())
+  const setZone = (pos: number) => (el: HTMLDivElement | null) => {
+    if (el) zonesRef.current.set(pos, el)
+    else zonesRef.current.delete(pos)
+  }
+
+  const [drag, setDrag] = useState<{
+    itemIdx: number
+    pointerX: number
+    pointerY: number
+    offsetX: number
+    offsetY: number
+    width: number
+    height: number
+    overPos: number | null
+  } | null>(null)
+
+  const findPosAt = (x: number, y: number): number | null => {
+    for (const [pos, el] of zonesRef.current) {
+      const rect = el.getBoundingClientRect()
+      if (
+        x >= rect.left &&
+        x <= rect.right &&
+        y >= rect.top &&
+        y <= rect.bottom
+      ) {
+        return pos
+      }
+    }
+    return null
+  }
+
+  /** Drop `itemIdx` into `targetPos` (or -1 for pool). If another item is
+   *  already at `targetPos`, swap them. */
+  const moveItem = (itemIdx: number, targetPos: number) => {
+    if (submitted) return
+    const next = placement.slice()
+    if (targetPos === -1) {
+      next[itemIdx] = -1
+      onChange(next)
+      return
+    }
+    const oldPos = next[itemIdx] ?? -1
+    const occupant = next.findIndex((p, idx) => p === targetPos && idx !== itemIdx)
+    next[itemIdx] = targetPos
+    if (occupant >= 0) next[occupant] = oldPos
+    onChange(next)
+  }
+
+  const onPointerDown = (
+    e: React.PointerEvent<HTMLDivElement>,
+    itemIdx: number
+  ) => {
+    if (submitted) return
+    const target = e.currentTarget
+    const rect = target.getBoundingClientRect()
+    target.setPointerCapture(e.pointerId)
+    setDrag({
+      itemIdx,
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+      width: rect.width,
+      height: rect.height,
+      overPos: null,
+    })
+  }
+
+  const onPointerMove = (
+    e: React.PointerEvent<HTMLDivElement>,
+    itemIdx: number
+  ) => {
+    if (!drag || drag.itemIdx !== itemIdx) return
+    const overPos = findPosAt(e.clientX, e.clientY)
+    setDrag((d) =>
+      d ? { ...d, pointerX: e.clientX, pointerY: e.clientY, overPos } : null
+    )
+  }
+
+  const onPointerUp = (
+    e: React.PointerEvent<HTMLDivElement>,
+    itemIdx: number
+  ) => {
+    if (!drag || drag.itemIdx !== itemIdx) return
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    if (drag.overPos !== null) moveItem(itemIdx, drag.overPos)
+    setDrag(null)
+  }
+
+  /** Position index → original item index occupying it, or -1 if empty. */
+  const itemAtPosition = (pos: number): number => {
+    for (let i = 0; i < placement.length; i++) {
+      if (placement[i] === pos) return i
+    }
+    return -1
+  }
+
+  /** Per-item feedback: green if item is at its correct position, red if
+   *  it's placed in the wrong one, neutral while in the pool. */
+  const itemFeedback = (itemIdx: number): Correctness | null => {
+    const pos = placement[itemIdx]
+    if (pos === undefined || pos < 0) return submitted ? "wrong" : null
+    if (!submitted && !instaCheck) return null
+    return pos === itemIdx ? "correct" : "wrong"
+  }
+
+  const renderItem = (itemIdx: number) => {
+    const fb = itemFeedback(itemIdx)
+    const border =
+      fb === "correct"
+        ? "border-green-500 bg-green-500/10"
+        : fb === "wrong"
+          ? "border-red-500 bg-red-500/10"
+          : "border-border bg-card hover:bg-muted"
+    const isDragSource = drag?.itemIdx === itemIdx
+    return (
+      <div
+        key={itemIdx}
+        onPointerDown={(e) => onPointerDown(e, itemIdx)}
+        onPointerMove={(e) => onPointerMove(e, itemIdx)}
+        onPointerUp={(e) => onPointerUp(e, itemIdx)}
+        onPointerCancel={(e) => onPointerUp(e, itemIdx)}
+        className={`flex-1 rounded border px-3 py-2 text-sm select-none ${border} ${
+          submitted ? "cursor-not-allowed" : "cursor-grab active:cursor-grabbing"
+        } ${isDragSource ? "opacity-30" : ""}`}
+        style={{ touchAction: "none" }}
+      >
+        <InlineRendered>{q.items[itemIdx] ?? ""}</InlineRendered>
+      </div>
+    )
+  }
+
+  const slotClasses = (pos: number, occupied: boolean) => {
+    const isOver = drag?.overPos === pos
+    return `flex items-center gap-3 rounded-lg border-2 p-2 transition-colors ${
+      isOver
+        ? "border-primary bg-primary/10"
+        : occupied
+          ? "border-border bg-muted/20"
+          : "border-dashed border-border bg-muted/30"
+    }`
+  }
+
+  const poolItems: number[] = []
+  for (let i = 0; i < placement.length; i++) {
+    if (placement[i] === undefined || placement[i] === -1) poolItems.push(i)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex flex-col items-stretch gap-2">
+        {Array.from({ length: itemCount }).map((_, pos) => {
+          const occupantIdx = itemAtPosition(pos)
+          return (
+            <React.Fragment key={pos}>
+              <div ref={setZone(pos)} className={slotClasses(pos, occupantIdx >= 0)}>
+                <span className="w-16 shrink-0 text-xs font-medium text-muted-foreground">
+                  Step {pos + 1}
+                </span>
+                {occupantIdx >= 0 ? (
+                  renderItem(occupantIdx)
+                ) : (
+                  <span className="flex-1 text-sm text-muted-foreground italic">
+                    Drop here
+                  </span>
+                )}
+              </div>
+              {pos < itemCount - 1 && (
+                <ArrowDown
+                  className="h-4 w-4 self-center text-muted-foreground"
+                  aria-hidden="true"
+                />
+              )}
+            </React.Fragment>
+          )
+        })}
+      </div>
+
+      <div>
+        <p className="mb-1 text-xs text-muted-foreground">Unsorted</p>
+        <div
+          ref={setZone(-1)}
+          className={`min-h-16 rounded-lg border-2 p-2 transition-colors ${
+            drag?.overPos === -1
+              ? "border-primary bg-primary/10"
+              : "border-dashed border-border bg-muted/30"
+          }`}
+        >
+          {poolItems.length === 0 ? (
+            <p className="px-1 text-xs text-muted-foreground italic">
+              Drag items back here to remove them from a position.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {poolItems.map((idx) => (
+                <div key={idx} className="min-w-32">
+                  {renderItem(idx)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {drag && (
+        <div
+          className="pointer-events-none fixed z-50 rounded border bg-background px-3 py-2 text-sm opacity-90 shadow-lg"
+          style={{
+            left: drag.pointerX - drag.offsetX,
+            top: drag.pointerY - drag.offsetY,
+            width: drag.width,
+          }}
+        >
+          <InlineRendered>{q.items[drag.itemIdx] ?? ""}</InlineRendered>
+        </div>
+      )}
+
+      {submitted && placement.some((p, i) => p !== i) && (
+        <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+          <p className="font-medium">Correct order:</p>
+          <ol className="list-decimal pl-6">
+            {q.items.map((it, i) => (
+              <li key={i}>
+                <InlineRendered>{it}</InlineRendered>
+              </li>
+            ))}
+          </ol>
         </div>
       )}
     </div>
@@ -975,6 +1256,23 @@ export function QuizRunner({
                     (answers[i] as number[]) ?? Array(q.items.length).fill(-1)
                   return (
                     <SortRenderer
+                      q={q}
+                      placement={placement}
+                      submitted={submitted}
+                      instaCheck={instaCheck}
+                      onChange={(next) =>
+                        setAnswers((a) => ({ ...a, [i]: next }))
+                      }
+                    />
+                  )
+                })()}
+
+              {q.type === "order" &&
+                (() => {
+                  const placement: number[] =
+                    (answers[i] as number[]) ?? Array(q.items.length).fill(-1)
+                  return (
+                    <OrderRenderer
                       q={q}
                       placement={placement}
                       submitted={submitted}

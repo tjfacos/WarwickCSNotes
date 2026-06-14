@@ -8,8 +8,14 @@ COPY Data/ /app/Data/
 # Install dependencies
 RUN bun install --frozen-lockfile
 
-# Build the web app
+# Build the web app. SKIP_TIKZ_PRERENDER=1 short-circuits scripts/render-tikz.mjs
+# so the LaTeX WASM kernel doesn't run inside the container — node-tikzjax can
+# easily push small Docker hosts (WSL2 defaults to ~4 GB) past their memory
+# budget. The pre-rendered SVGs in Data/Resources/Images/tikz/ are committed
+# and get copied into dist by Vite's publicDir; locally, authors run
+# `npm run tikz` (or just `npm run build`) to keep them in sync.
 WORKDIR /app/frontend/apps/web
+ENV SKIP_TIKZ_PRERENDER=1
 RUN bun run build
 
 FROM ghcr.io/astral-sh/uv:alpine3.23 AS runtime

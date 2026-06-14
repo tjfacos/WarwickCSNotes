@@ -122,7 +122,11 @@
                 {"title": "Coursework", "submission_deadline": "2026-04-30 12:00 PM", "weighting": 20, "eligible_for_self_certification": false},
                 {"title": "Centrally-timetabled examination (On-campus)", "submission_deadline": "2026-06-15 9:30 AM", "weighting": 80, "eligible_for_self_certification": false}
             ],
-            "exercise_solutions": []
+            "exercise_solutions": [
+                {"title": "Seminar Exercise 1 (Week 2)", "url": "https://warwick.ac.uk/fac/sci/dcs/teaching/material/cs259/exercise1_msr.pdf", "solution": {"url": "/resources/Solutions/CS259/SeminarExercise1"}},
+                {"title": "Seminar Exercise 2 (Week 3)", "url": "https://warwick.ac.uk/fac/sci/dcs/teaching/material/cs259/week3.pdf", "solution": {"url": "/resources/Solutions/CS259/SeminarExercise2"}},
+                {"title": "Seminar Exercise 3 (Week 4)", "url": "https://warwick.ac.uk/fac/sci/dcs/teaching/material/cs259/week4.pdf", "solution": {"url": "/resources/Solutions/CS259/SeminarExercise3"}}
+            ]
         },
         "CS260": {
             "tagline": "Algorithm paradigms and also complexity classes",
